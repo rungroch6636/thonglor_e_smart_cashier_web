@@ -38,6 +38,8 @@ dependencies:
     sdk: flutter
   google_fonts: ^4.0.4
   pattern_formatter: ^3.0.0
+  pdf: ^3.10.7
+  printing: ^5.11.1
   syncfusion_flutter_datepicker: ^23.2.4
 
 dev_dependencies:

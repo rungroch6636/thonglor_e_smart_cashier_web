@@ -12,6 +12,7 @@ import 'package:thonglor_e_smart_cashier_web/models/payment_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/receipt_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/site_model.dart';
 import 'package:thonglor_e_smart_cashier_web/screens/add_payment_type_screen.dart';
+
 import 'package:thonglor_e_smart_cashier_web/screens/select_approver_popup.dart';
 import 'package:thonglor_e_smart_cashier_web/screens/payment_image_screen.dart';
 import 'package:thonglor_e_smart_cashier_web/util/constant.dart';
@@ -19,6 +20,10 @@ import 'package:collection/collection.dart';
 import 'package:thonglor_e_smart_cashier_web/widgets/remarkPopup.dart';
 import 'package:thonglor_e_smart_cashier_web/widgets/textFormFieldActual.dart';
 import 'package:thonglor_e_smart_cashier_web/widgets/textFormFieldPDComment.dart';
+
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart ' as pw;
+import 'package:printing/printing.dart';
 
 import '../models/employee_model.dart';
 import '../models/paymentDetailImageTemp_model.dart';
@@ -107,7 +112,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
   String selectDateFrom = DateFormat('yyyy-MM-dd').format(DateTime.now());
   String selectDateTo = DateFormat('yyyy-MM-dd').format(DateTime.now());
   String selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    //  '2023-11-07'; //DateFormat('yyyy-MM-dd').format(DateTime.now());
+  //  '2023-11-07'; //DateFormat('yyyy-MM-dd').format(DateTime.now());
 
   bool isCheckRun = false;
   bool isCheckClickOii = false;
@@ -938,8 +943,138 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                               });
                                                             });
                                                           }
+
+                                                          //SetPrint
                                                         }
                                                       },
+                                                    ),
+                                                  ),
+                                                  IconButton(
+                                                      icon: Icon(Icons.abc),
+                                                      onPressed: () async {
+                                                        //!Print
+
+                                                        final doc =
+                                                            pw.Document();
+
+                                                        _genPDFDailyByEmpForm(
+                                                            doc,
+                                                            lPaymentMaster,
+                                                            lPaymentDetail,
+                                                            widget.lEmp,
+                                                            lSite
+                                                                .where((ee) =>
+                                                                    ee.site_id ==
+                                                                    siteToAddPaymentType)
+                                                                .toList());
+
+                                                        await showDialog(
+                                                            context: context,
+                                                            builder: (context) {
+                                                              return Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .all(
+                                                                        8.0),
+                                                                child: DailyByEmpForm(
+                                                                    doc: doc,
+                                                                    pdfFileName:
+                                                                        'pdfFileName'),
+                                                              );
+                                                            });
+                                                      }),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Tooltip(
+                                                      message: isSend
+                                                          ? ''
+                                                          : 'กรุณา Save ก่อนทำการ',
+                                                      child: ElevatedButton(
+                                                        style: ElevatedButton
+                                                            .styleFrom(
+                                                          backgroundColor:
+                                                              isSend
+                                                                  ? null
+                                                                  : Colors.grey,
+                                                        ),
+                                                        child: const Text(
+                                                            ' Send '),
+                                                        onPressed: () async {
+                                                          if (isSend) {
+                                                            if (lPaymentDetail
+                                                                .isEmpty) {
+                                                            } else {
+                                                              showDialog(
+                                                                  barrierDismissible:
+                                                                      false,
+                                                                  context:
+                                                                      context,
+                                                                  builder:
+                                                                      (context) {
+                                                                    return Center(
+                                                                      child:
+                                                                          SizedBox(
+                                                                        height:
+                                                                            300,
+                                                                        width:
+                                                                            600,
+                                                                        child:
+                                                                            SelectApproverPopup(
+                                                                          paymentId:
+                                                                              paymentId,
+                                                                          empid: widget
+                                                                              .lEmp
+                                                                              .first
+                                                                              .employee_id,
+                                                                          siteId: widget
+                                                                              .lEmp
+                                                                              .first
+                                                                              .site_id,
+                                                                          callbackUpdate:
+                                                                              () async {
+                                                                            // await updatePayment(
+                                                                            //     paymentId);
+                                                                            await updatePaymentStatus(paymentId);
+                                                                          },
+                                                                          callbackClear:
+                                                                              () {
+                                                                            lPaymentMaster.clear();
+                                                                            lPaymentChoice.clear();
+                                                                            lPaymentDetail.clear();
+                                                                            lPaymentDetailId.clear();
+                                                                            lPaymentDetailTypeId.clear();
+                                                                            lPaymentImage.clear();
+                                                                            lPaymentImageDB.clear();
+                                                                            lPaymentImageRemoveId.clear();
+                                                                            lPaymentRemark.clear();
+                                                                            lPaymentRemarkId.clear();
+                                                                            lPaymentRemarkRemoveId.clear();
+
+                                                                            dTotalActual =
+                                                                                0.00;
+                                                                            dTotalPaid =
+                                                                                0.00;
+                                                                            dTotalBalance =
+                                                                                0.00;
+                                                                            paymentControllers.clear();
+
+                                                                            isSend =
+                                                                                false;
+                                                                            isStatusScreen =
+                                                                                'New';
+
+                                                                            setState(() {});
+                                                                          },
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  });
+                                                            }
+                                                          }
+                                                        },
+                                                      ),
                                                     ),
                                                   ),
                                                   Padding(
@@ -2063,5 +2198,119 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
       return nameAndDate;
     });
     //=> gKey.emp_fullname);
+  }
+
+  Future<void> _genPDFDailyByEmpForm(
+    pw.Document doc,
+    List<PaymentModel> pLPayment,
+    List<PaymentDetailModel> pLPaymentDetail,
+    List<EmployeeModel> pLEmployee,
+    List<SiteModel> pLSite,
+  ) async {
+    Uint8List imagePNG =
+        (await rootBundle.load('images/logothonglor_circle.png'))
+            .buffer
+            .asUint8List();
+    var siteName = pLSite.first.site_name;
+//Prompt-Regular.ttf
+    var arabicFont = //Prompt-Medium.ttf
+        pw.Font.ttf(await rootBundle.load("fonts/RSU-Regular.ttf"));
+
+    var fontBold = pw.Font.ttf(await rootBundle.load("fonts/RSU-Bold.ttf"));
+
+    var imagelogo = pw.MemoryImage(imagePNG);
+
+    var countrowSitepdf = pLPaymentDetail.length;
+    String yyyynow = DateTime.now().year.toString();
+    String MMnow = DateTime.now().month.toString();
+    String ddnow = DateTime.now().day.toString();
+    doc.addPage(
+      pw.Page(
+        orientation: pw.PageOrientation.natural,
+        margin: const pw.EdgeInsets.all(8.0),
+        theme: pw.ThemeData.withFont(
+          base: arabicFont,
+        ),
+        pageFormat: PdfPageFormat.a4.portrait,
+        build: (pw.Context context) {
+          return pw.Container(
+            child: pw.Column(
+                mainAxisAlignment: pw.MainAxisAlignment.start,
+                children: [
+                  // Harder
+                  pw.Container(
+                      height: 100,
+                      color: PdfColors.green,
+                      child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.center,
+                          children: [
+                            pw.SizedBox(height: 8),
+                            pw.Text('บริษัท โรงพยาบาลสัตว์ทองหล่อ จำกัด',
+                                style:
+                                    pw.TextStyle(font: fontBold, fontSize: 16)),
+                            pw.Text('Thonglor Pet Hospital Co.,Ltd.',
+                                style:
+                                    pw.TextStyle(font: fontBold, fontSize: 16)),
+                            pw.Text(
+                                'รายงานปิดผลัด จำแนกตามประเภทเงิน (รวม VAT)',
+                                style: pw.TextStyle(fontSize: 12)),
+                            pw.SizedBox(height: 8),
+                            pw.Text(siteName,
+                                style: pw.TextStyle(fontSize: 12)),
+                          ])),
+
+                  pw.SizedBox(height: 8),
+                  //body
+                  pw.Expanded(
+                    flex: 8,
+                    child: pw.Container(
+                        color: PdfColors.grey100,
+                        child: pw.Center(child: pw.Text('testdata'))),
+                  ),
+
+                  pw.SizedBox(height: 8),
+                  //Footer
+                  pw.Expanded(
+                    flex: 1,
+                    child: pw.Container(
+                        child: pw.Column(
+                      mainAxisAlignment: pw.MainAxisAlignment.end,
+                      children: [
+                        pw.Text('_________________________________'),
+                        pw.Text('( ผู้รับชำระเงิน )'),
+                      ],
+                    )),
+                  ),
+                ]),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class DailyByEmpForm extends StatelessWidget {
+  final pw.Document doc;
+  String pdfFileName;
+
+  DailyByEmpForm({Key? key, required this.doc, required this.pdfFileName})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(' Preview Document ')),
+      body: Container(
+        child: Center(
+          child: PdfPreview(
+            build: (format) => doc.save(),
+            allowSharing: true,
+            allowPrinting: true,
+            initialPageFormat: PdfPageFormat.a4,
+            pdfFileName: '${pdfFileName}.pdf',
+          ),
+        ),
+      ),
+    );
   }
 }
