@@ -18,6 +18,8 @@ class PaymentModel {
   String tlpayment_status;
   String tlpayment_merge_id;
   String tlpayment_comment;
+  String tlpayment_imed_total_income;
+  String tlpayment_print_number;
   PaymentModel({
     required this.tlpayment_id,
     required this.tlpayment_imed_total,
@@ -35,6 +37,8 @@ class PaymentModel {
     required this.tlpayment_status,
     required this.tlpayment_merge_id,
     required this.tlpayment_comment,
+    required this.tlpayment_imed_total_income,
+    required this.tlpayment_print_number,
   });
 
   PaymentModel copyWith({
@@ -54,6 +58,8 @@ class PaymentModel {
     String? tlpayment_status,
     String? tlpayment_merge_id,
     String? tlpayment_comment,
+    String? tlpayment_imed_total_income,
+    String? tlpayment_print_number,
   }) {
     return PaymentModel(
       tlpayment_id: tlpayment_id ?? this.tlpayment_id,
@@ -72,6 +78,8 @@ class PaymentModel {
       tlpayment_status: tlpayment_status ?? this.tlpayment_status,
       tlpayment_merge_id: tlpayment_merge_id ?? this.tlpayment_merge_id,
       tlpayment_comment: tlpayment_comment ?? this.tlpayment_comment,
+      tlpayment_imed_total_income: tlpayment_imed_total_income ?? this.tlpayment_imed_total_income,
+      tlpayment_print_number: tlpayment_print_number ?? this.tlpayment_print_number,
     );
   }
 
@@ -93,6 +101,8 @@ class PaymentModel {
       'tlpayment_status': tlpayment_status,
       'tlpayment_merge_id': tlpayment_merge_id,
       'tlpayment_comment': tlpayment_comment,
+      'tlpayment_imed_total_income': tlpayment_imed_total_income,
+      'tlpayment_print_number': tlpayment_print_number,
     };
   }
 
@@ -114,6 +124,8 @@ class PaymentModel {
       tlpayment_status: map['tlpayment_status'] as String,
       tlpayment_merge_id: map['tlpayment_merge_id'] as String,
       tlpayment_comment: map['tlpayment_comment'] as String,
+      tlpayment_imed_total_income: map['tlpayment_imed_total_income'] as String,
+      tlpayment_print_number: map['tlpayment_print_number'] as String,
     );
   }
 
@@ -123,7 +135,7 @@ class PaymentModel {
 
   @override
   String toString() {
-    return 'PaymentModel(tlpayment_id: $tlpayment_id, tlpayment_imed_total: $tlpayment_imed_total, tlpayment_actual_total: $tlpayment_actual_total, tlpayment_diff_abs: $tlpayment_diff_abs, tlpayment_rec_date: $tlpayment_rec_date, tlpayment_rec_time_from: $tlpayment_rec_time_from, tlpayment_rec_time_to: $tlpayment_rec_time_to, tlpayment_rec_site: $tlpayment_rec_site, tlpayment_rec_by: $tlpayment_rec_by, tlpayment_create_date: $tlpayment_create_date, tlpayment_create_time: $tlpayment_create_time, tlpayment_modify_date: $tlpayment_modify_date, tlpayment_modify_time: $tlpayment_modify_time, tlpayment_status: $tlpayment_status, tlpayment_merge_id: $tlpayment_merge_id, tlpayment_comment: $tlpayment_comment)';
+    return 'PaymentModel(tlpayment_id: $tlpayment_id, tlpayment_imed_total: $tlpayment_imed_total, tlpayment_actual_total: $tlpayment_actual_total, tlpayment_diff_abs: $tlpayment_diff_abs, tlpayment_rec_date: $tlpayment_rec_date, tlpayment_rec_time_from: $tlpayment_rec_time_from, tlpayment_rec_time_to: $tlpayment_rec_time_to, tlpayment_rec_site: $tlpayment_rec_site, tlpayment_rec_by: $tlpayment_rec_by, tlpayment_create_date: $tlpayment_create_date, tlpayment_create_time: $tlpayment_create_time, tlpayment_modify_date: $tlpayment_modify_date, tlpayment_modify_time: $tlpayment_modify_time, tlpayment_status: $tlpayment_status, tlpayment_merge_id: $tlpayment_merge_id, tlpayment_comment: $tlpayment_comment, tlpayment_imed_total_income: $tlpayment_imed_total_income, tlpayment_print_number: $tlpayment_print_number)';
   }
 
   @override
@@ -146,7 +158,9 @@ class PaymentModel {
       other.tlpayment_modify_time == tlpayment_modify_time &&
       other.tlpayment_status == tlpayment_status &&
       other.tlpayment_merge_id == tlpayment_merge_id &&
-      other.tlpayment_comment == tlpayment_comment;
+      other.tlpayment_comment == tlpayment_comment &&
+      other.tlpayment_imed_total_income == tlpayment_imed_total_income &&
+      other.tlpayment_print_number == tlpayment_print_number;
   }
 
   @override
@@ -166,6 +180,8 @@ class PaymentModel {
       tlpayment_modify_time.hashCode ^
       tlpayment_status.hashCode ^
       tlpayment_merge_id.hashCode ^
-      tlpayment_comment.hashCode;
+      tlpayment_comment.hashCode ^
+      tlpayment_imed_total_income.hashCode ^
+      tlpayment_print_number.hashCode;
   }
 }

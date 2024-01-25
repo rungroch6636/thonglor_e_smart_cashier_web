@@ -133,12 +133,12 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
   final oCcy = NumberFormat(
     "#,##0.00",
   );
+
   double dTotalPaid = 0;
   double dTotalActual = 0;
   double dTotalBalance = 0;
   List<PaymentDetailModel> lPaymentDetail = [];
   List<PaymentModel> lPaymentChoice = [];
-
   List<PaymentModel> lPaymentMaster = [];
 
   var groupName;
@@ -147,6 +147,9 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
   bool isIconSelect = false;
 
   TextEditingController paymentControllers = TextEditingController();
+
+  double dTotalIncome = 0;
+  String printNumber = '';
 
   @override
   void initState() {
@@ -231,7 +234,8 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                   ),
                                                                 )
                                                               : SizedBox(
-                                                                  height: MediaQuery.of(context)
+                                                                  height: MediaQuery.of(
+                                                                              context)
                                                                           .size
                                                                           .height /
                                                                       2,
@@ -499,7 +503,8 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                                     }),
                                                                               ],
                                                                             );
-                                                                          })),
+                                                                          }),
+                                                                ),
                                                         ),
                                                         Container(
                                                           decoration: BoxDecoration(
@@ -735,8 +740,8 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                             ? Colors.grey
                                                             : null,
                                                       ),
-                                                      child:
-                                                          const Text(' Save '),
+                                                      child: const Text(
+                                                          ' Save And Print '),
                                                       onPressed: () async {
                                                         if (lPaymentDetail
                                                                 .isEmpty ||
@@ -764,7 +769,8 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                   ),
                                                                 );
                                                               });
-
+                                                          printNumber =
+                                                              '${widget.lEmp.first.employee_id}_${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}_${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}_${DateTime.now().millisecond}';
                                                           if (isStatusScreen ==
                                                               'New') {
                                                             Future.delayed(
@@ -789,6 +795,21 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                 //! PaymentDetailRemark
                                                                 await createPaymentDetailRemark();
                                                               }
+
+                                                              //! loadPayment
+                                                              await loadPaymentMasterById(
+                                                                  paymentId);
+                                                              //! loadPaymentDetail
+                                                              await loadPaymentDetail(
+                                                                  paymentId);
+
+                                                              //! loadPaymentDetail.Image
+                                                              await loadPaymentDetailImage(
+                                                                  paymentId);
+                                                              //! loadPaymentDetail.Remark
+                                                              await loadPaymentDetailRemark(
+                                                                  paymentId);
+
                                                               Navigator.pop(
                                                                   context);
                                                               showDialog(
@@ -819,10 +840,10 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                   );
                                                                 },
                                                               );
-                                                              Future.delayed(
+                                                              await Future.delayed(
                                                                   const Duration(
                                                                       milliseconds:
-                                                                          500),
+                                                                          300),
                                                                   () {
                                                                 Navigator.pop(
                                                                     context);
@@ -830,18 +851,52 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                               setState(() {
                                                                 isSend = true;
                                                               });
+                                                              //!Print
+                                                              final doc =
+                                                                  pw.Document();
+                                                              await _genPDFDailyByEmpForm(
+                                                                  doc,
+                                                                  lPaymentMaster,
+                                                                  lPaymentDetail,
+                                                                  widget.lEmp,
+                                                                  lSite
+                                                                      .where((ee) =>
+                                                                          ee.site_id ==
+                                                                          siteToAddPaymentType)
+                                                                      .toList());
+                                                              await Future.delayed(
+                                                                  const Duration(
+                                                                      milliseconds:
+                                                                          100),
+                                                                  () async {
+                                                                await showDialog(
+                                                                    context:
+                                                                        context,
+                                                                    builder:
+                                                                        (context) {
+                                                                      return Padding(
+                                                                        padding: const EdgeInsets
+                                                                            .all(
+                                                                            8.0),
+                                                                        child: DailyByEmpForm(
+                                                                            doc:
+                                                                                doc,
+                                                                            pdfFileName:
+                                                                                printNumber),
+                                                                      );
+                                                                    });
+                                                              });
                                                             });
                                                           } else if (isStatusScreen ==
                                                                   'create' ||
                                                               isStatusScreen ==
                                                                   'reject') {
                                                             Future.delayed(
-                                                                Duration(
+                                                                const Duration(
                                                                     seconds: 1),
                                                                 () async {
                                                               await updatePayment(
                                                                   paymentId);
-
                                                               for (var pd
                                                                   in lPaymentDetail) {
                                                                 if (lPaymentDetailId
@@ -890,6 +945,9 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                               await deletePaymentDetailRemark();
                                                               await deletePaymentDetailImage();
 
+                                                              //! loadPayment
+                                                              await loadPaymentMasterById(
+                                                                  paymentId);
                                                               //! loadPaymentDetail
                                                               await loadPaymentDetail(
                                                                   paymentId);
@@ -930,151 +988,57 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                   );
                                                                 },
                                                               );
-                                                              Future.delayed(
+                                                              await Future.delayed(
                                                                   const Duration(
                                                                       milliseconds:
-                                                                          500),
+                                                                          300),
                                                                   () {
                                                                 Navigator.pop(
                                                                     context);
+
+                                                                setState(() {
+                                                                  isSend = true;
+                                                                });
                                                               });
-                                                              setState(() {
-                                                                isSend = true;
+                                                              //!Print
+                                                              final doc =
+                                                                  pw.Document();
+                                                              await _genPDFDailyByEmpForm(
+                                                                  doc,
+                                                                  lPaymentMaster,
+                                                                  lPaymentDetail,
+                                                                  widget.lEmp,
+                                                                  lSite
+                                                                      .where((ee) =>
+                                                                          ee.site_id ==
+                                                                          siteToAddPaymentType)
+                                                                      .toList());
+                                                              await Future.delayed(
+                                                                  const Duration(
+                                                                      milliseconds:
+                                                                          100),
+                                                                  () async {
+                                                                await showDialog(
+                                                                    context:
+                                                                        context,
+                                                                    builder:
+                                                                        (context) {
+                                                                      return Padding(
+                                                                        padding: const EdgeInsets
+                                                                            .all(
+                                                                            8.0),
+                                                                        child: DailyByEmpForm(
+                                                                            doc:
+                                                                                doc,
+                                                                            pdfFileName:
+                                                                                printNumber),
+                                                                      );
+                                                                    });
                                                               });
                                                             });
                                                           }
-
-                                                          //SetPrint
                                                         }
                                                       },
-                                                    ),
-                                                  ),
-                                                  IconButton(
-                                                      icon: Icon(Icons.abc),
-                                                      onPressed: () async {
-                                                        //!Print
-
-                                                        final doc =
-                                                            pw.Document();
-
-                                                        _genPDFDailyByEmpForm(
-                                                            doc,
-                                                            lPaymentMaster,
-                                                            lPaymentDetail,
-                                                            widget.lEmp,
-                                                            lSite
-                                                                .where((ee) =>
-                                                                    ee.site_id ==
-                                                                    siteToAddPaymentType)
-                                                                .toList());
-
-                                                        await showDialog(
-                                                            context: context,
-                                                            builder: (context) {
-                                                              return Padding(
-                                                                padding:
-                                                                    const EdgeInsets
-                                                                        .all(
-                                                                        8.0),
-                                                                child: DailyByEmpForm(
-                                                                    doc: doc,
-                                                                    pdfFileName:
-                                                                        'pdfFileName'),
-                                                              );
-                                                            });
-                                                      }),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: Tooltip(
-                                                      message: isSend
-                                                          ? ''
-                                                          : 'กรุณา Save ก่อนทำการ',
-                                                      child: ElevatedButton(
-                                                        style: ElevatedButton
-                                                            .styleFrom(
-                                                          backgroundColor:
-                                                              isSend
-                                                                  ? null
-                                                                  : Colors.grey,
-                                                        ),
-                                                        child: const Text(
-                                                            ' Send '),
-                                                        onPressed: () async {
-                                                          if (isSend) {
-                                                            if (lPaymentDetail
-                                                                .isEmpty) {
-                                                            } else {
-                                                              showDialog(
-                                                                  barrierDismissible:
-                                                                      false,
-                                                                  context:
-                                                                      context,
-                                                                  builder:
-                                                                      (context) {
-                                                                    return Center(
-                                                                      child:
-                                                                          SizedBox(
-                                                                        height:
-                                                                            300,
-                                                                        width:
-                                                                            600,
-                                                                        child:
-                                                                            SelectApproverPopup(
-                                                                          paymentId:
-                                                                              paymentId,
-                                                                          empid: widget
-                                                                              .lEmp
-                                                                              .first
-                                                                              .employee_id,
-                                                                          siteId: widget
-                                                                              .lEmp
-                                                                              .first
-                                                                              .site_id,
-                                                                          callbackUpdate:
-                                                                              () async {
-                                                                            // await updatePayment(
-                                                                            //     paymentId);
-                                                                            await updatePaymentStatus(paymentId);
-                                                                          },
-                                                                          callbackClear:
-                                                                              () {
-                                                                            lPaymentMaster.clear();
-                                                                            lPaymentChoice.clear();
-                                                                            lPaymentDetail.clear();
-                                                                            lPaymentDetailId.clear();
-                                                                            lPaymentDetailTypeId.clear();
-                                                                            lPaymentImage.clear();
-                                                                            lPaymentImageDB.clear();
-                                                                            lPaymentImageRemoveId.clear();
-                                                                            lPaymentRemark.clear();
-                                                                            lPaymentRemarkId.clear();
-                                                                            lPaymentRemarkRemoveId.clear();
-
-                                                                            dTotalActual =
-                                                                                0.00;
-                                                                            dTotalPaid =
-                                                                                0.00;
-                                                                            dTotalBalance =
-                                                                                0.00;
-                                                                            paymentControllers.clear();
-
-                                                                            isSend =
-                                                                                false;
-                                                                            isStatusScreen =
-                                                                                'New';
-
-                                                                            setState(() {});
-                                                                          },
-                                                                        ),
-                                                                      ),
-                                                                    );
-                                                                  });
-                                                            }
-                                                          }
-                                                        },
-                                                      ),
                                                     ),
                                                   ),
                                                   Padding(
@@ -1094,7 +1058,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                   : Colors.grey,
                                                         ),
                                                         child: const Text(
-                                                            ' Send '),
+                                                            ' Send Approval '),
                                                         onPressed: () async {
                                                           if (isSend) {
                                                             if (lPaymentDetail
@@ -1735,6 +1699,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
           dTotalPaid += double.parse(newPD.paid_go);
           dTotalActual += double.parse(newPD.paid_go);
           dTotalBalance += double.parse(newPD.tlpayment_detail_diff_paid);
+          dTotalIncome += double.parse(newPD.paid);
         }
         groupName = groupPaymentDeposit(lPaymentDetail);
       }
@@ -1764,10 +1729,47 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
     });
   }
 
+  Future loadPaymentMasterById(String paymentId) async {
+    dTotalPaid = 0.0;
+    dTotalActual = 0.0;
+    dTotalBalance = 0.0;
+    dTotalIncome = 0.0;
+    siteToAddPaymentType = '';
+    lPaymentMaster = [];
+
+    FormData formData = FormData.fromMap({
+      "token": TlConstant.token,
+      "id": paymentId,
+    });
+    String api = '${TlConstant.syncApi}tlPayment.php?id=1';
+
+    await Dio().post(api, data: formData).then((value) {
+      if (value.data == null) {
+        print('NoData');
+      } else {
+        for (var payment in value.data) {
+          PaymentModel newPayment = PaymentModel.fromMap(payment);
+          lPaymentMaster.add(newPayment);
+        }
+      }
+    });
+
+    siteToAddPaymentType = lPaymentMaster.first.tlpayment_rec_site;
+    dTotalPaid = double.parse(lPaymentMaster.first.tlpayment_imed_total);
+    dTotalActual = double.parse(lPaymentMaster.first.tlpayment_actual_total);
+    dTotalBalance = double.parse(lPaymentMaster.first.tlpayment_diff_abs);
+    dTotalIncome =
+        double.parse(lPaymentMaster.first.tlpayment_imed_total_income);
+    paymentControllers.text = lPaymentMaster.first.tlpayment_comment;
+
+    printNumber = lPaymentMaster.first.tlpayment_print_number;
+  }
+
   Future loadPaymentMaster(String paymentId) async {
     dTotalPaid = 0.0;
     dTotalActual = 0.0;
     dTotalBalance = 0.0;
+    dTotalIncome = 0.0;
     siteToAddPaymentType = '';
     lPaymentMaster =
         lPaymentChoice.where((e) => e.tlpayment_id == paymentId).toList();
@@ -1776,12 +1778,19 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
     dTotalPaid = double.parse(lPaymentMaster.first.tlpayment_imed_total);
     dTotalActual = double.parse(lPaymentMaster.first.tlpayment_actual_total);
     dTotalBalance = double.parse(lPaymentMaster.first.tlpayment_diff_abs);
+    dTotalIncome =
+        double.parse(lPaymentMaster.first.tlpayment_imed_total_income);
     paymentControllers.text = lPaymentMaster.first.tlpayment_comment;
+
+    printNumber = lPaymentMaster.first.tlpayment_print_number;
   }
 
   Future loadPaymentDetail(String paymentId) async {
-    lPaymentDetail = [];
-    lPaymentDetailTypeId = [];
+    setState(() {
+      lPaymentDetail = [];
+      lPaymentDetailTypeId = [];
+      groupName = '';
+    });
 
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
@@ -1875,6 +1884,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
       "moDate": moDate,
       "moTime": moTime,
       "comment": comment,
+      "printnumber": printNumber,
     });
     String api = '${TlConstant.syncApi}tlPayment.php?id=update';
     await Dio().post(api, data: formData);
@@ -2010,7 +2020,10 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
       "tlpayment_modify_time": '',
       "tlpayment_status": status,
       "tlpayment_merge_id": '',
-      "tlpayment_comment": paymentControllers.text
+      "tlpayment_comment": paymentControllers.text,
+      "tlpayment_imed_total_income": dTotalIncome.toStringAsFixed(2),
+      "tlpayment_print_number": printNumber,
+      //"tlpayment_comment": paymentControllers.text
     });
     String api = '${TlConstant.syncApi}tlPayment.php?id=create';
 
@@ -2185,16 +2198,17 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
   }
 
   groupPaymentDeposit(List<PaymentDetailModel> lPaymentDetail) {
-    double dTotalPaid = 0.00;
+    double dTotalIncome = 0.00;
     return groupBy(lPaymentDetail, (gKey) {
-      dTotalPaid = 0.00;
+      dTotalIncome = 0.00;
       lPaymentDetail
           .where((element) => element.tlpayment_type == gKey.tlpayment_type)
           .forEach((e) {
-        dTotalPaid += double.parse(e.paid);
+        dTotalIncome += double.parse(e.paid);
       });
 
-      var nameAndDate = '${gKey.tlpayment_type} (${oCcy.format(dTotalPaid)}) ';
+      var nameAndDate =
+          '${gKey.tlpayment_type} (${oCcy.format(dTotalIncome)}) ';
       return nameAndDate;
     });
     //=> gKey.emp_fullname);
@@ -2207,6 +2221,8 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
     List<EmployeeModel> pLEmployee,
     List<SiteModel> pLSite,
   ) async {
+    var pGroupName = groupPaymentDeposit(pLPaymentDetail);
+
     Uint8List imagePNG =
         (await rootBundle.load('images/logothonglor_circle.png'))
             .buffer
@@ -2224,6 +2240,9 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
     String yyyynow = DateTime.now().year.toString();
     String MMnow = DateTime.now().month.toString();
     String ddnow = DateTime.now().day.toString();
+
+    int iPdfIndex = 0;
+
     doc.addPage(
       pw.Page(
         orientation: pw.PageOrientation.natural,
@@ -2234,54 +2253,389 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
         pageFormat: PdfPageFormat.a4.portrait,
         build: (pw.Context context) {
           return pw.Container(
-            child: pw.Column(
-                mainAxisAlignment: pw.MainAxisAlignment.start,
-                children: [
-                  // Harder
-                  pw.Container(
-                      height: 100,
-                      color: PdfColors.green,
-                      child: pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.center,
-                          children: [
-                            pw.SizedBox(height: 8),
-                            pw.Text('บริษัท โรงพยาบาลสัตว์ทองหล่อ จำกัด',
-                                style:
-                                    pw.TextStyle(font: fontBold, fontSize: 16)),
-                            pw.Text('Thonglor Pet Hospital Co.,Ltd.',
-                                style:
-                                    pw.TextStyle(font: fontBold, fontSize: 16)),
-                            pw.Text(
-                                'รายงานปิดผลัด จำแนกตามประเภทเงิน (รวม VAT)',
-                                style: pw.TextStyle(fontSize: 12)),
-                            pw.SizedBox(height: 8),
-                            pw.Text(siteName,
-                                style: pw.TextStyle(fontSize: 12)),
-                          ])),
-
-                  pw.SizedBox(height: 8),
-                  //body
-                  pw.Expanded(
-                    flex: 8,
-                    child: pw.Container(
-                        color: PdfColors.grey100,
-                        child: pw.Center(child: pw.Text('testdata'))),
-                  ),
-
-                  pw.SizedBox(height: 8),
-                  //Footer
-                  pw.Expanded(
-                    flex: 1,
-                    child: pw.Container(
+            child: pw.Padding(
+              padding: const pw.EdgeInsets.all(8),
+              child: pw.Column(
+                  mainAxisAlignment: pw.MainAxisAlignment.start,
+                  children: [
+                    // Harder
+                    pw.Container(
+                        height: 100,
                         child: pw.Column(
-                      mainAxisAlignment: pw.MainAxisAlignment.end,
-                      children: [
-                        pw.Text('_________________________________'),
-                        pw.Text('( ผู้รับชำระเงิน )'),
-                      ],
-                    )),
-                  ),
-                ]),
+                            crossAxisAlignment: pw.CrossAxisAlignment.center,
+                            children: [
+                              pw.SizedBox(height: 8),
+                              pw.Text('บริษัท โรงพยาบาลสัตว์ทองหล่อ จำกัด',
+                                  style: pw.TextStyle(
+                                      font: fontBold, fontSize: 16)),
+                              pw.Text('Thonglor Pet Hospital Co.,Ltd.',
+                                  style: pw.TextStyle(
+                                      font: fontBold, fontSize: 16)),
+                              pw.Text(
+                                  'รายงานปิดผลัด จำแนกตามประเภทเงิน (รวม VAT)',
+                                  style: pw.TextStyle(fontSize: 12)),
+                              pw.SizedBox(height: 8),
+                              pw.Text(
+                                  'ปิดผลัด ${siteName} ผลัดวันที่ ${pLPayment.first.tlpayment_rec_date}  โดย ${pLEmployee.first.emp_fullname}',
+                                  style: pw.TextStyle(fontSize: 12)),
+                            ])),
+
+                    pw.SizedBox(height: 8),
+                    //body
+                    pw.Expanded(
+                      flex: 8,
+                      child: pw.Container(
+                          //color: PdfColors.green100,
+                          child: pw.Column(children: [
+                        pw.Container(
+                          decoration: const pw.BoxDecoration(
+                              color: PdfColors.green900,
+                              borderRadius: pw.BorderRadius.only(
+                                  topLeft: pw.Radius.circular(4),
+                                  topRight: pw.Radius.circular(4))),
+                          child: pw.Padding(
+                            padding: const pw.EdgeInsets.symmetric(
+                                horizontal: 4, vertical: 6),
+                            child: pw.Row(
+                                mainAxisAlignment:
+                                    pw.MainAxisAlignment.spaceAround,
+                                children: [
+                                  pw.Expanded(
+                                    child: pw.SizedBox(
+                                        child: pw.Text('สรุปรายงานปิดผลัด',
+                                            style: pw.TextStyle(
+                                                font: fontBold,
+                                                fontSize: 12,
+                                                color: PdfColors.white))),
+                                  ),
+                                  pw.SizedBox(
+                                    width: 100,
+                                    child: pw.Center(
+                                        child: pw.Text('สรุปยอดรายได้',
+                                            style: pw.TextStyle(
+                                                font: fontBold,
+                                                fontSize: 12,
+                                                color: PdfColors.white))),
+                                  ),
+                                  pw.SizedBox(
+                                    width: 100,
+                                    child: pw.Center(
+                                        child: pw.Text('สรุปยอดส่งเงิน',
+                                            style: pw.TextStyle(
+                                                font: fontBold,
+                                                fontSize: 12,
+                                                color: PdfColors.white))),
+                                  ),
+                                  pw.SizedBox(
+                                    width: 100,
+                                    child: pw.Center(
+                                        child: pw.Text('ยอดนำส่งเงินจริง',
+                                            style: pw.TextStyle(
+                                                font: fontBold,
+                                                fontSize: 12,
+                                                color: PdfColors.white))),
+                                  ),
+                                  pw.Container(
+                                    width: 100,
+                                    child: pw.Center(
+                                      child: pw.Text('หมายเหตุ',
+                                          style: pw.TextStyle(
+                                              font: fontBold,
+                                              fontSize: 12,
+                                              color: PdfColors.white)),
+                                    ),
+                                  ),
+                                ]),
+                          ),
+                        ),
+                        pw.SizedBox(
+                          height: 2,
+                        ),
+                        pw.Expanded(
+                          child: pw.SizedBox(
+                            child: pw.ListView.builder(
+                              itemCount: pGroupName.length,
+                              itemBuilder: (context, indexHeader) {
+                                iPdfIndex += 1;
+
+                                String pFullName =
+                                    pGroupName.keys.elementAt(indexHeader);
+                                List<PaymentDetailModel> data =
+                                    pGroupName.values.elementAt(indexHeader);
+
+                                return pw.Column(
+                                  children: [
+                                    pw.Container(
+                                        color: PdfColors.green100,
+                                        child: pw.Align(
+                                          alignment: pw.Alignment.centerLeft,
+                                          child: pw.Padding(
+                                            padding:
+                                                const pw.EdgeInsets.symmetric(
+                                                    horizontal: 8, vertical: 4),
+                                            child: pw.Text(
+                                              '${pFullName} ::: xx${iPdfIndex}xx',
+                                              style: pw.TextStyle(
+                                                  font: fontBold, fontSize: 10),
+                                            ),
+                                          ),
+                                        )),
+                                    pw.ListView.builder(
+                                        // shrinkWrap: true,
+                                        // physics: ClampingScrollPhysics(),
+                                        itemCount: data.length,
+                                        itemBuilder:
+                                            (context, int indexDetail) {
+                                          iPdfIndex += 1;
+                                          PaymentDetailModel pPaymentDetail =
+                                              data[indexDetail];
+
+                                          //mTextController.text = mPaymentDetail.tlpayment_detail_actual_paid;
+                                          // Return a widget representing the item
+                                          return pw.Row(
+                                            mainAxisAlignment: pw
+                                                .MainAxisAlignment.spaceAround,
+                                            children: [
+                                              pw.Expanded(
+                                                child: pw.SizedBox(
+                                                  child: pw.Align(
+                                                    alignment:
+                                                        pw.Alignment.center,
+                                                    child: pw.Text(
+                                                      pPaymentDetail
+                                                          .tlpayment_type_detail,
+                                                      style: pw.TextStyle(
+                                                          fontSize: 10),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              pw.SizedBox(
+                                                width: 100,
+                                                child: pw.Align(
+                                                  alignment:
+                                                      pw.Alignment.centerRight,
+                                                  child: pw.Padding(
+                                                    padding: const pw
+                                                        .EdgeInsets.only(
+                                                        right: 20.0),
+                                                    child: pw.Text(
+                                                      oCcy.format(double.parse(
+                                                          pPaymentDetail.paid)),
+                                                      style: pw.TextStyle(
+                                                          fontSize: 10),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              pw.SizedBox(
+                                                width: 100,
+                                                child: pw.Align(
+                                                  alignment:
+                                                      pw.Alignment.centerRight,
+                                                  child: pw.Padding(
+                                                    padding: const pw
+                                                        .EdgeInsets.only(
+                                                        right: 20.0),
+                                                    child: pw.Text(
+                                                      oCcy.format(double.parse(
+                                                          pPaymentDetail
+                                                              .paid_go)),
+                                                      style: pw.TextStyle(
+                                                          fontSize: 10),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              pw.SizedBox(
+                                                  width: 100,
+                                                  child: pw.Align(
+                                                    alignment: pw
+                                                        .Alignment.centerRight,
+                                                    child: pw.Padding(
+                                                      padding: const pw
+                                                          .EdgeInsets.only(
+                                                          right: 20.0),
+                                                      child: pw.Text(
+                                                        oCcy.format(double.parse(
+                                                            pPaymentDetail
+                                                                .tlpayment_detail_actual_paid)),
+                                                        style:
+                                                            const pw.TextStyle(
+                                                                fontSize: 10),
+                                                      ),
+                                                    ),
+                                                  )),
+                                              pw.SizedBox(
+                                                width: 100,
+                                                child: pw.Padding(
+                                                  padding:
+                                                      const pw.EdgeInsets.only(
+                                                          bottom: 8.0),
+                                                  child: pw.Text(
+                                                    'xx${iPdfIndex}xx',
+                                                    // pPaymentDetail
+                                                    //     .tlpayment_detail_comment,
+                                                    style: pw.TextStyle(
+                                                        fontSize: 10),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        }),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ])),
+                    ),
+                    pw.Container(
+                      decoration: pw.BoxDecoration(
+                          color: PdfColors.green300,
+                          borderRadius:
+                              pw.BorderRadius.all(pw.Radius.circular(8))),
+                      child: pw.Row(children: [
+                        pw.Expanded(
+                            child: pw.Align(
+                          alignment: pw.Alignment.centerLeft,
+                          child: pw.SizedBox(
+                              child: pw.Text('  สรุปยอด',
+                                  style: pw.TextStyle(
+                                    font: fontBold,
+                                    fontSize: 16,
+                                  ))),
+                        )),
+                        pw.SizedBox(
+                            width: 100,
+                            child: pw.Align(
+                              alignment: pw.Alignment.centerRight,
+                              child: pw.Padding(
+                                padding: const pw.EdgeInsets.only(right: 20.0),
+                                child: pw.Text(
+                                  oCcy.format(double.parse(pLPayment
+                                      .first.tlpayment_imed_total_income)),
+                                  style: pw.TextStyle(
+                                      font: fontBold, fontSize: 14),
+                                ),
+                              ),
+                            )),
+                        pw.SizedBox(
+                            width: 100,
+                            child: pw.Align(
+                              alignment: pw.Alignment.centerRight,
+                              child: pw.Padding(
+                                padding: const pw.EdgeInsets.only(right: 20.0),
+                                child: pw.Text(
+                                  oCcy.format(double.parse(
+                                      pLPayment.first.tlpayment_imed_total)),
+                                  style: pw.TextStyle(
+                                      font: fontBold, fontSize: 14),
+                                ),
+                              ),
+                            )),
+                        pw.SizedBox(
+                            width: 100,
+                            child: pw.Align(
+                              alignment: pw.Alignment.centerRight,
+                              child: pw.Padding(
+                                padding: const pw.EdgeInsets.only(right: 20.0),
+                                child: pw.Text(
+                                  oCcy.format(double.parse(
+                                    pLPayment.first.tlpayment_actual_total,
+                                  )),
+                                  style: pw.TextStyle(
+                                      font: fontBold, fontSize: 14),
+                                ),
+                              ),
+                            )),
+                        pw.SizedBox(
+                            width: 100,
+                            child: pw.Align(
+                              alignment: pw.Alignment.centerRight,
+                              child: pw.Padding(
+                                padding: const pw.EdgeInsets.only(right: 20.0),
+                                child: pw.Text(
+                                  'ขาด/เกิน\n${oCcy.format(double.parse(pLPayment.first.tlpayment_diff_abs))}',
+                                  style: pw.TextStyle(
+                                      font: fontBold, fontSize: 14),
+                                ),
+                              ),
+                            )),
+                      ]),
+                    ),
+
+                    pw.SizedBox(height: 4),
+                    pw.Row(children: [
+                      pw.SizedBox(
+                          width: 60,
+                          child: pw.Align(
+                            alignment: pw.Alignment.centerLeft,
+                            child: pw.Text(' หมายเหตุ : xx${iPdfIndex}xx',
+                                style: pw.TextStyle(
+                                  font: fontBold,
+                                  fontSize: 12,
+                                )),
+                          )),
+                      pw.Expanded(
+                        child: pw.Container(
+                          alignment: pw.Alignment.centerLeft,
+                          color: PdfColors.grey200,
+                          height: 20,
+                          child:
+                              pw.Text('   ${pLPayment.first.tlpayment_comment}',
+                                  style: const pw.TextStyle(
+                                    fontSize: 12,
+                                  )),
+                        ),
+                      ),
+                    ]),
+
+                    pw.SizedBox(height: 4),
+
+                    //Footer
+                    pw.Expanded(
+                      flex: 1,
+                      child: pw.Container(
+                        height: 100,
+                        color: PdfColors.grey300,
+                        child: pw.Row(
+                            mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+                            children: [
+                              pw.Column(
+                                mainAxisAlignment: pw.MainAxisAlignment.end,
+                                children: [
+                                  pw.Text('_________________________________'),
+                                  pw.SizedBox(
+                                    height: 20,
+                                    child: pw.Text(
+                                        '( ${pLEmployee.first.emp_fullname} )'),
+                                  ),
+                                  pw.Text('( ผู้นำส่งเงิน )'),
+                                ],
+                              ),
+                              pw.Column(
+                                mainAxisAlignment: pw.MainAxisAlignment.end,
+                                children: [
+                                  pw.Text('_________________________________'),
+                                  pw.SizedBox(height: 20),
+                                  pw.Text('( ผู้ตรวจสอบ )'),
+                                ],
+                              )
+                            ]),
+                      ),
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Container(
+                        alignment: pw.Alignment.centerRight,
+                        child: pw.Text(
+                            'No. ${pLPayment.first.tlpayment_print_number}',
+                            style: const pw.TextStyle(fontSize: 10))),
+                    pw.SizedBox(height: 8),
+                  ]),
+            ),
           );
         },
       ),
