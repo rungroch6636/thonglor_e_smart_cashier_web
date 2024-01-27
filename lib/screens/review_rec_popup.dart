@@ -305,10 +305,10 @@ class _ReviewRecPopupState extends State<ReviewRecPopup> {
                                                           'รอการอนุมัติ : ${lSumRecReview[index].countStatusWaiting}',
                                                           style: TextStyle(
                                                               color: Colors
-                                                                  .green[900]),
+                                                                  .yellow[900]),
                                                         ),
                                                         backgroundColor:
-                                                            Colors.green[100],
+                                                            Colors.yellow[100],
                                                       ),
                                                     )
                                                   : null),

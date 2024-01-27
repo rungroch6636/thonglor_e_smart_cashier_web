@@ -470,8 +470,8 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                                                                           child: lPaymentMaster[index].emp_fullname == 'ALL'
                                                                               ? null
                                                                               : Text(
-                                                                                  '(${lPaymentMaster[index].tlpayment_status})',
-                                                                                  style: const TextStyle(color: Colors.blue, fontSize: 12),
+                                                                                  lPaymentMaster[index].tlpayment_status == 'waiting' ? '(รอการอนุมัติ)' : '(อนุมัติแล้ว)',
+                                                                                  style: TextStyle(color: lPaymentMaster[index].tlpayment_status == 'waiting' ? Colors.yellow[900] : Colors.blue[900], fontSize: 12),
                                                                                 ),
                                                                         ),
                                                                       ],
@@ -546,7 +546,7 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                                                 Padding(
                                                   padding:
                                                       const EdgeInsets.only(
-                                                          bottom: 24),
+                                                          bottom: 16),
                                                   child: lPaymentDetail.isEmpty
                                                       ? const SizedBox(
                                                           height: 40,
@@ -1455,6 +1455,7 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                           ),
                           onPressed: () async {
                             if (isCheckRun == false) {
+                              isSelectCardEmp = 'ALL';
                               dateRec = selectedDate;
                               print('Event Btn Run');
                               print(widget.lEmp.first.employee_id);

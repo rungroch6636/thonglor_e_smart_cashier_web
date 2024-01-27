@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 class ReceiptModel {
+  
   int paid_method;
   String paid_method_func;
   String paid_method_th;

@@ -151,6 +151,11 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
   double dTotalIncome = 0;
   String printNumber = '';
 
+  bool isBtnUpdateHover = false;
+  bool isBtnSaveHover = false;
+  bool isBtnPrintHover = false;
+  bool isBtnSendHover = false;
+
   @override
   void initState() {
     super.initState();
@@ -724,346 +729,43 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                     MainAxisAlignment
                                                         .spaceAround,
                                                 children: [
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: ElevatedButton(
-                                                      style: ElevatedButton
-                                                          .styleFrom(
-                                                        backgroundColor: lPaymentDetail
-                                                                    .isEmpty ||
-                                                                isStatusScreen ==
-                                                                    'waiting' ||
-                                                                isStatusScreen ==
-                                                                    'confirm'
-                                                            ? Colors.grey
-                                                            : null,
-                                                      ),
-                                                      child: const Text(
-                                                          ' Save And Print '),
-                                                      onPressed: () async {
-                                                        if (lPaymentDetail
-                                                                .isEmpty ||
+                                                  SizedBox(
+                                                    child: isStatusScreen ==
+                                                                'create' ||
                                                             isStatusScreen ==
-                                                                'waiting' ||
-                                                            isStatusScreen ==
-                                                                'confirm') {
-                                                        } else {
-                                                          showDialog(
-                                                              barrierDismissible:
-                                                                  false,
-                                                              context: context,
-                                                              builder:
-                                                                  (context) {
-                                                                return const Center(
-                                                                  child:
-                                                                      SizedBox(
-                                                                    height: 100,
-                                                                    width: 100,
-                                                                    child:
-                                                                        Center(
-                                                                      child:
-                                                                          CircularProgressIndicator(),
-                                                                    ),
-                                                                  ),
-                                                                );
-                                                              });
-                                                          printNumber =
-                                                              '${widget.lEmp.first.employee_id}_${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}_${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}_${DateTime.now().millisecond}';
-                                                          if (isStatusScreen ==
-                                                              'New') {
-                                                            Future.delayed(
-                                                                Duration(
-                                                                    seconds: 1),
-                                                                () async {
-                                                              //! Payment
-                                                              await createPayment();
-                                                              //! PaymentDetail
-                                                              await createPaymentDetail();
-                                                              if (lPaymentImage
-                                                                  .isEmpty) {
-                                                              } else {
-                                                                //! PaymentDetailImageDB
-                                                                await createPaymentDetailImageDB();
-                                                                //! PaymentDetailImageFolder
-                                                                await createPaymentDetailImageFolder();
-                                                              }
-                                                              if (lPaymentRemark
-                                                                  .isEmpty) {
-                                                              } else {
-                                                                //! PaymentDetailRemark
-                                                                await createPaymentDetailRemark();
-                                                              }
-
-                                                              //! loadPayment
-                                                              await loadPaymentMasterById(
-                                                                  paymentId);
-                                                              //! loadPaymentDetail
-                                                              await loadPaymentDetail(
-                                                                  paymentId);
-
-                                                              //! loadPaymentDetail.Image
-                                                              await loadPaymentDetailImage(
-                                                                  paymentId);
-                                                              //! loadPaymentDetail.Remark
-                                                              await loadPaymentDetailRemark(
-                                                                  paymentId);
-
-                                                              Navigator.pop(
-                                                                  context);
-                                                              showDialog(
-                                                                barrierDismissible:
-                                                                    false,
-                                                                context:
-                                                                    context,
-                                                                builder:
-                                                                    (context) {
-                                                                  return const Center(
-                                                                    child: Card(
-                                                                      elevation:
-                                                                          0,
-                                                                      color: Color.fromARGB(
-                                                                          0,
-                                                                          255,
-                                                                          255,
-                                                                          255),
-                                                                      child:
-                                                                          Text(
-                                                                        'Save Success..',
-                                                                        style: TextStyle(
-                                                                            color:
-                                                                                Colors.green,
-                                                                            fontSize: 24),
-                                                                      ),
-                                                                    ),
-                                                                  );
-                                                                },
-                                                              );
-                                                              await Future.delayed(
-                                                                  const Duration(
-                                                                      milliseconds:
-                                                                          300),
-                                                                  () {
-                                                                Navigator.pop(
-                                                                    context);
-                                                              });
-                                                              setState(() {
-                                                                isSend = true;
-                                                              });
-                                                              //!Print
-                                                              final doc =
-                                                                  pw.Document();
-                                                              await _genPDFDailyByEmpForm(
-                                                                  doc,
-                                                                  lPaymentMaster,
-                                                                  lPaymentDetail,
-                                                                  widget.lEmp,
-                                                                  lSite
-                                                                      .where((ee) =>
-                                                                          ee.site_id ==
-                                                                          siteToAddPaymentType)
-                                                                      .toList());
-                                                              await Future.delayed(
-                                                                  const Duration(
-                                                                      milliseconds:
-                                                                          100),
-                                                                  () async {
-                                                                await showDialog(
-                                                                    context:
-                                                                        context,
-                                                                    builder:
-                                                                        (context) {
-                                                                      return Padding(
-                                                                        padding: const EdgeInsets
-                                                                            .all(
-                                                                            8.0),
-                                                                        child: DailyByEmpForm(
-                                                                            doc:
-                                                                                doc,
-                                                                            pdfFileName:
-                                                                                printNumber),
-                                                                      );
-                                                                    });
-                                                              });
-                                                            });
-                                                          } else if (isStatusScreen ==
-                                                                  'create' ||
-                                                              isStatusScreen ==
-                                                                  'reject') {
-                                                            Future.delayed(
-                                                                const Duration(
-                                                                    seconds: 1),
-                                                                () async {
-                                                              await updatePayment(
-                                                                  paymentId);
-                                                              for (var pd
-                                                                  in lPaymentDetail) {
-                                                                if (lPaymentDetailId
-                                                                    .where((e) =>
-                                                                        e ==
-                                                                        pd.tlpayment_detail_id)
-                                                                    .isNotEmpty) {
-                                                                  await updatePaymentDetail(
-                                                                      pd.tlpayment_detail_id);
-                                                                } else {
-                                                                  await createPaymentDetailByModel(
-                                                                      pd);
-                                                                }
-                                                              }
-                                                              for (var pdr
-                                                                  in lPaymentRemark) {
-                                                                if (lPaymentRemarkId
-                                                                    .where((e) =>
-                                                                        e ==
-                                                                        pdr.tlpayment_d_remark_id)
-                                                                    .isNotEmpty) {
-                                                                  await updatePaymentDetailRemark(
-                                                                      pdr.tlpayment_d_remark_id);
-                                                                } else {
-                                                                  await createPaymentDetailRemarkByModel(
-                                                                      pdr);
-                                                                }
-                                                              }
-
-                                                              for (var pdi
-                                                                  in lPaymentImage) {
-                                                                if (lPaymentImageDB
-                                                                    .where((e) =>
-                                                                        e.tlpayment_detail_image_id ==
-                                                                        pdi.tlpayment_detail_image_id)
-                                                                    .isNotEmpty) {
-                                                                  await updatePaymentDetailImage(
-                                                                      pdi.tlpayment_detail_image_id);
-                                                                } else {
-                                                                  await createPaymentDetailImageDBByModel(
-                                                                      pdi);
-                                                                  await createPaymentDetailImageFolderByModel(
-                                                                      pdi);
-                                                                }
-                                                              }
-                                                              await deletePaymentDetailRemark();
-                                                              await deletePaymentDetailImage();
-
-                                                              //! loadPayment
-                                                              await loadPaymentMasterById(
-                                                                  paymentId);
-                                                              //! loadPaymentDetail
-                                                              await loadPaymentDetail(
-                                                                  paymentId);
-                                                              //! loadPaymentDetail.Image
-                                                              await loadPaymentDetailImage(
-                                                                  paymentId);
-                                                              //! loadPaymentDetail.Remark
-                                                              await loadPaymentDetailRemark(
-                                                                  paymentId);
-
-                                                              Navigator.pop(
-                                                                  context);
-                                                              showDialog(
-                                                                barrierDismissible:
-                                                                    false,
-                                                                context:
-                                                                    context,
-                                                                builder:
-                                                                    (context) {
-                                                                  return const Center(
-                                                                    child: Card(
-                                                                      elevation:
-                                                                          0,
-                                                                      color: Color.fromARGB(
-                                                                          0,
-                                                                          255,
-                                                                          255,
-                                                                          255),
-                                                                      child:
-                                                                          Text(
-                                                                        'Update Success..',
-                                                                        style: TextStyle(
-                                                                            color:
-                                                                                Colors.green,
-                                                                            fontSize: 24),
-                                                                      ),
-                                                                    ),
-                                                                  );
-                                                                },
-                                                              );
-                                                              await Future.delayed(
-                                                                  const Duration(
-                                                                      milliseconds:
-                                                                          300),
-                                                                  () {
-                                                                Navigator.pop(
-                                                                    context);
-
-                                                                setState(() {
-                                                                  isSend = true;
-                                                                });
-                                                              });
-                                                              //!Print
-                                                              final doc =
-                                                                  pw.Document();
-                                                              await _genPDFDailyByEmpForm(
-                                                                  doc,
-                                                                  lPaymentMaster,
-                                                                  lPaymentDetail,
-                                                                  widget.lEmp,
-                                                                  lSite
-                                                                      .where((ee) =>
-                                                                          ee.site_id ==
-                                                                          siteToAddPaymentType)
-                                                                      .toList());
-                                                              await Future.delayed(
-                                                                  const Duration(
-                                                                      milliseconds:
-                                                                          100),
-                                                                  () async {
-                                                                await showDialog(
-                                                                    context:
-                                                                        context,
-                                                                    builder:
-                                                                        (context) {
-                                                                      return Padding(
-                                                                        padding: const EdgeInsets
-                                                                            .all(
-                                                                            8.0),
-                                                                        child: DailyByEmpForm(
-                                                                            doc:
-                                                                                doc,
-                                                                            pdfFileName:
-                                                                                printNumber),
-                                                                      );
-                                                                    });
-                                                              });
-                                                            });
-                                                          }
-                                                        }
-                                                      },
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: Tooltip(
-                                                      message: isSend
-                                                          ? ''
-                                                          : 'กรุณา Save ก่อนทำการเลือกผู้ตรวจสอบ',
-                                                      child: ElevatedButton(
-                                                        style: ElevatedButton
-                                                            .styleFrom(
-                                                          backgroundColor:
-                                                              isSend
-                                                                  ? null
-                                                                  : Colors.grey,
-                                                        ),
-                                                        child: const Text(
-                                                            ' Send Approval '),
-                                                        onPressed: () async {
-                                                          if (isSend) {
-                                                            if (lPaymentDetail
-                                                                .isEmpty) {
-                                                            } else {
+                                                                'reject'
+                                                        ? ElevatedButton(
+                                                            onHover: (hover) {
+                                                              isBtnUpdateHover =
+                                                                  hover;
+                                                              setState(() {});
+                                                            },
+                                                            style: ElevatedButton.styleFrom(
+                                                                foregroundColor:
+                                                                    isBtnUpdateHover
+                                                                        ? Colors
+                                                                            .white
+                                                                        : Colors.yellow[
+                                                                            900],
+                                                                backgroundColor:
+                                                                    isBtnUpdateHover
+                                                                        ? Colors.yellow[
+                                                                            900]
+                                                                        : Colors
+                                                                            .white,
+                                                                shape: RoundedRectangleBorder(
+                                                                    side: BorderSide(
+                                                                        width:
+                                                                            2,
+                                                                        color: Colors
+                                                                            .yellow
+                                                                            .shade900),
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            50))),
+                                                            child:
+                                                                Text(' อัพเดทข้อมูล '),
+                                                            onPressed: () async {
                                                               showDialog(
                                                                   barrierDismissible:
                                                                       false,
@@ -1071,71 +773,745 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                       context,
                                                                   builder:
                                                                       (context) {
-                                                                    return Center(
+                                                                    return const Center(
                                                                       child:
                                                                           SizedBox(
                                                                         height:
-                                                                            300,
+                                                                            100,
                                                                         width:
-                                                                            600,
+                                                                            100,
                                                                         child:
-                                                                            SelectApproverPopup(
-                                                                          paymentId:
-                                                                              paymentId,
-                                                                          empid: widget
-                                                                              .lEmp
-                                                                              .first
-                                                                              .employee_id,
-                                                                          siteId: widget
-                                                                              .lEmp
-                                                                              .first
-                                                                              .site_id,
-                                                                          callbackUpdate:
-                                                                              () async {
-                                                                            // await updatePayment(
-                                                                            //     paymentId);
-                                                                            await updatePaymentStatus(paymentId);
-                                                                          },
-                                                                          callbackClear:
-                                                                              () {
-                                                                            lPaymentMaster.clear();
-                                                                            lPaymentChoice.clear();
-                                                                            lPaymentDetail.clear();
-                                                                            lPaymentDetailId.clear();
-                                                                            lPaymentDetailTypeId.clear();
-                                                                            lPaymentImage.clear();
-                                                                            lPaymentImageDB.clear();
-                                                                            lPaymentImageRemoveId.clear();
-                                                                            lPaymentRemark.clear();
-                                                                            lPaymentRemarkId.clear();
-                                                                            lPaymentRemarkRemoveId.clear();
-
-                                                                            dTotalActual =
-                                                                                0.00;
-                                                                            dTotalPaid =
-                                                                                0.00;
-                                                                            dTotalBalance =
-                                                                                0.00;
-                                                                            paymentControllers.clear();
-
-                                                                            isSend =
-                                                                                false;
-                                                                            isStatusScreen =
-                                                                                'New';
-
-                                                                            setState(() {});
-                                                                          },
+                                                                            Center(
+                                                                          child:
+                                                                              CircularProgressIndicator(),
                                                                         ),
                                                                       ),
                                                                     );
                                                                   });
-                                                            }
-                                                          }
-                                                        },
-                                                      ),
+
+                                                              await loadDataUpdatePaymentImed(
+                                                                  paymentId,
+                                                                  widget
+                                                                      .lEmp
+                                                                      .first
+                                                                      .employee_id,
+                                                                  siteDDValue,
+                                                                  selectedDate,
+                                                                  startTime,
+                                                                  endTime);
+
+                                                              setState(() {
+                                                                Navigator.pop(
+                                                                    context);
+                                                              });
+                                                            })
+                                                        : null,
+                                                  ),
+                                                  SizedBox(
+                                                    child: isStatusScreen ==
+                                                                'New' ||
+                                                            isStatusScreen ==
+                                                                'create' ||
+                                                            isStatusScreen ==
+                                                                'reject'
+                                                        ? ElevatedButton(
+                                                            onHover: (hover) {
+                                                              isBtnSaveHover =
+                                                                  hover;
+                                                              setState(() {});
+                                                            },
+                                                            style:
+                                                                ElevatedButton
+                                                                    .styleFrom(
+                                                              foregroundColor: lPaymentDetail
+                                                                          .isEmpty ||
+                                                                      isStatusScreen ==
+                                                                          'waiting' ||
+                                                                      isStatusScreen ==
+                                                                          'confirm'
+                                                                  ? Colors.white
+                                                                  : isBtnSaveHover
+                                                                      ? Colors
+                                                                          .white
+                                                                      : Colors.lightBlue[
+                                                                          600],
+                                                              backgroundColor: lPaymentDetail
+                                                                          .isEmpty ||
+                                                                      isStatusScreen ==
+                                                                          'waiting' ||
+                                                                      isStatusScreen ==
+                                                                          'confirm'
+                                                                  ? Colors.grey
+                                                                  : isBtnSaveHover
+                                                                      ? Colors.lightBlue[
+                                                                          600]
+                                                                      : Colors
+                                                                          .white,
+                                                              shape: RoundedRectangleBorder(
+                                                                  side: lPaymentDetail
+                                                                              .isEmpty ||
+                                                                          isStatusScreen ==
+                                                                              'waiting' ||
+                                                                          isStatusScreen ==
+                                                                              'confirm'
+                                                                      ? const BorderSide(
+                                                                          width:
+                                                                              0,
+                                                                          color: Colors
+                                                                              .grey)
+                                                                      : BorderSide(
+                                                                          width:
+                                                                              2,
+                                                                          color: Colors
+                                                                              .lightBlue
+                                                                              .shade600),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              50)),
+                                                            ),
+                                                            child: const Text(
+                                                                ' บันทึก '),
+                                                            onPressed:
+                                                                () async {
+                                                              if (lPaymentDetail
+                                                                      .isEmpty ||
+                                                                  isStatusScreen ==
+                                                                      'waiting' ||
+                                                                  isStatusScreen ==
+                                                                      'confirm') {
+                                                              } else {
+                                                                showDialog(
+                                                                    barrierDismissible:
+                                                                        false,
+                                                                    context:
+                                                                        context,
+                                                                    builder:
+                                                                        (context) {
+                                                                      return const Center(
+                                                                        child:
+                                                                            SizedBox(
+                                                                          height:
+                                                                              100,
+                                                                          width:
+                                                                              100,
+                                                                          child:
+                                                                              Center(
+                                                                            child:
+                                                                                CircularProgressIndicator(),
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    });
+                                                                printNumber =
+                                                                    '${widget.lEmp.first.employee_id}_${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}_${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}_${DateTime.now().millisecond}';
+                                                                if (isStatusScreen ==
+                                                                    'New') {
+                                                                  Future.delayed(
+                                                                      Duration(
+                                                                          seconds:
+                                                                              1),
+                                                                      () async {
+                                                                    //! Payment
+                                                                    await createPayment();
+                                                                    //! PaymentDetail
+                                                                    await createPaymentDetail();
+                                                                    if (lPaymentImage
+                                                                        .isEmpty) {
+                                                                    } else {
+                                                                      //! PaymentDetailImageDB
+                                                                      await createPaymentDetailImageDB();
+                                                                      //! PaymentDetailImageFolder
+                                                                      await createPaymentDetailImageFolder();
+                                                                    }
+                                                                    if (lPaymentRemark
+                                                                        .isEmpty) {
+                                                                    } else {
+                                                                      //! PaymentDetailRemark
+                                                                      await createPaymentDetailRemark();
+                                                                    }
+
+                                                                    //! loadPayment
+                                                                    await loadPaymentMasterById(
+                                                                        paymentId);
+                                                                    //! loadPaymentDetail
+                                                                    await loadPaymentDetail(
+                                                                        paymentId);
+
+                                                                    //! loadPaymentDetail.Image
+                                                                    await loadPaymentDetailImage(
+                                                                        paymentId);
+                                                                    //! loadPaymentDetail.Remark
+                                                                    await loadPaymentDetailRemark(
+                                                                        paymentId);
+
+                                                                    Navigator.pop(
+                                                                        context);
+                                                                    showDialog(
+                                                                      barrierDismissible:
+                                                                          false,
+                                                                      context:
+                                                                          context,
+                                                                      builder:
+                                                                          (context) {
+                                                                        return const Center(
+                                                                          child:
+                                                                              Card(
+                                                                            elevation:
+                                                                                0,
+                                                                            color: Color.fromARGB(
+                                                                                0,
+                                                                                255,
+                                                                                255,
+                                                                                255),
+                                                                            child:
+                                                                                Text(
+                                                                              'Save Success..',
+                                                                              style: TextStyle(color: Colors.green, fontSize: 24),
+                                                                            ),
+                                                                          ),
+                                                                        );
+                                                                      },
+                                                                    );
+                                                                    await Future.delayed(
+                                                                        const Duration(
+                                                                            milliseconds:
+                                                                                300),
+                                                                        () {
+                                                                      Navigator.pop(
+                                                                          context);
+                                                                    });
+                                                                    setState(
+                                                                        () {
+                                                                      isSend =
+                                                                          true;
+                                                                    });
+                                                                  });
+                                                                } else if (isStatusScreen ==
+                                                                        'create' ||
+                                                                    isStatusScreen ==
+                                                                        'reject') {
+                                                                  Future.delayed(
+                                                                      const Duration(
+                                                                          seconds:
+                                                                              1),
+                                                                      () async {
+                                                                    await updatePayment(
+                                                                        paymentId);
+                                                                    for (var pd
+                                                                        in lPaymentDetail) {
+                                                                      if (lPaymentDetailId
+                                                                          .where((e) =>
+                                                                              e ==
+                                                                              pd.tlpayment_detail_id)
+                                                                          .isNotEmpty) {
+                                                                        await updatePaymentDetail(
+                                                                            pd.tlpayment_detail_id);
+                                                                      } else {
+                                                                        await createPaymentDetailByModel(
+                                                                            pd);
+                                                                      }
+                                                                    }
+                                                                    for (var pdr
+                                                                        in lPaymentRemark) {
+                                                                      if (lPaymentRemarkId
+                                                                          .where((e) =>
+                                                                              e ==
+                                                                              pdr.tlpayment_d_remark_id)
+                                                                          .isNotEmpty) {
+                                                                        await updatePaymentDetailRemark(
+                                                                            pdr.tlpayment_d_remark_id);
+                                                                      } else {
+                                                                        await createPaymentDetailRemarkByModel(
+                                                                            pdr);
+                                                                      }
+                                                                    }
+
+                                                                    for (var pdi
+                                                                        in lPaymentImage) {
+                                                                      if (lPaymentImageDB
+                                                                          .where((e) =>
+                                                                              e.tlpayment_detail_image_id ==
+                                                                              pdi.tlpayment_detail_image_id)
+                                                                          .isNotEmpty) {
+                                                                        await updatePaymentDetailImage(
+                                                                            pdi.tlpayment_detail_image_id);
+                                                                      } else {
+                                                                        await createPaymentDetailImageDBByModel(
+                                                                            pdi);
+                                                                        await createPaymentDetailImageFolderByModel(
+                                                                            pdi);
+                                                                      }
+                                                                    }
+                                                                    await deletePaymentDetailRemark();
+                                                                    await deletePaymentDetailImage();
+
+                                                                    //! loadPayment
+                                                                    await loadPaymentMasterById(
+                                                                        paymentId);
+                                                                    //! loadPaymentDetail
+                                                                    await loadPaymentDetail(
+                                                                        paymentId);
+                                                                    //! loadPaymentDetail.Image
+                                                                    await loadPaymentDetailImage(
+                                                                        paymentId);
+                                                                    //! loadPaymentDetail.Remark
+                                                                    await loadPaymentDetailRemark(
+                                                                        paymentId);
+
+                                                                    Navigator.pop(
+                                                                        context);
+                                                                    showDialog(
+                                                                      barrierDismissible:
+                                                                          false,
+                                                                      context:
+                                                                          context,
+                                                                      builder:
+                                                                          (context) {
+                                                                        return const Center(
+                                                                          child:
+                                                                              Card(
+                                                                            elevation:
+                                                                                0,
+                                                                            color: Color.fromARGB(
+                                                                                0,
+                                                                                255,
+                                                                                255,
+                                                                                255),
+                                                                            child:
+                                                                                Text(
+                                                                              'Update Success..',
+                                                                              style: TextStyle(color: Colors.green, fontSize: 24),
+                                                                            ),
+                                                                          ),
+                                                                        );
+                                                                      },
+                                                                    );
+                                                                    await Future.delayed(
+                                                                        const Duration(
+                                                                            milliseconds:
+                                                                                300),
+                                                                        () {
+                                                                      Navigator.pop(
+                                                                          context);
+
+                                                                      setState(
+                                                                          () {
+                                                                        isSend =
+                                                                            true;
+                                                                      });
+                                                                    });
+                                                                  });
+                                                                }
+                                                              }
+                                                            },
+                                                          )
+                                                        : null,
+                                                  ),
+                                                  SizedBox(
+                                                    child: SizedBox(
+                                                      child: isStatusScreen ==
+                                                                  'New' ||
+                                                              isStatusScreen ==
+                                                                  'create' ||
+                                                              isStatusScreen ==
+                                                                  'reject'
+                                                          ? ElevatedButton(
+                                                              onHover: (hover) {
+                                                                isBtnPrintHover =
+                                                                    hover;
+                                                                setState(() {});
+                                                              },
+                                                              style: ElevatedButton.styleFrom(
+                                                                  foregroundColor: isBtnPrintHover
+                                                                      ? Colors
+                                                                          .white
+                                                                      : Colors.pink[
+                                                                          300],
+                                                                  backgroundColor: isBtnPrintHover
+                                                                      ? Colors.pink[
+                                                                          300]
+                                                                      : Colors
+                                                                          .white,
+                                                                  shape: RoundedRectangleBorder(
+                                                                      side: BorderSide(
+                                                                          width:
+                                                                              2,
+                                                                          color: Colors
+                                                                              .pink
+                                                                              .shade300),
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              50))),
+                                                              child: const Text(
+                                                                  ' ปริ้นเอกสารปิดผลัด '),
+                                                              onPressed:
+                                                                  () async {
+                                                                if (lPaymentDetail
+                                                                        .isEmpty ||
+                                                                    isStatusScreen ==
+                                                                        'waiting' ||
+                                                                    isStatusScreen ==
+                                                                        'confirm') {
+                                                                } else {
+                                                                  showDialog(
+                                                                      barrierDismissible:
+                                                                          false,
+                                                                      context:
+                                                                          context,
+                                                                      builder:
+                                                                          (context) {
+                                                                        return const Center(
+                                                                          child:
+                                                                              SizedBox(
+                                                                            height:
+                                                                                100,
+                                                                            width:
+                                                                                100,
+                                                                            child:
+                                                                                Center(
+                                                                              child: CircularProgressIndicator(),
+                                                                            ),
+                                                                          ),
+                                                                        );
+                                                                      });
+                                                                  printNumber =
+                                                                      '${widget.lEmp.first.employee_id}_${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}_${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}_${DateTime.now().millisecond}';
+                                                                  if (isStatusScreen ==
+                                                                      'New') {
+                                                                    Future.delayed(
+                                                                        Duration(
+                                                                            seconds:
+                                                                                1),
+                                                                        () async {
+                                                                      //! Payment
+                                                                      await createPayment();
+                                                                      //! PaymentDetail
+                                                                      await createPaymentDetail();
+                                                                      if (lPaymentImage
+                                                                          .isEmpty) {
+                                                                      } else {
+                                                                        //! PaymentDetailImageDB
+                                                                        await createPaymentDetailImageDB();
+                                                                        //! PaymentDetailImageFolder
+                                                                        await createPaymentDetailImageFolder();
+                                                                      }
+                                                                      if (lPaymentRemark
+                                                                          .isEmpty) {
+                                                                      } else {
+                                                                        //! PaymentDetailRemark
+                                                                        await createPaymentDetailRemark();
+                                                                      }
+
+                                                                      //! loadPayment
+                                                                      await loadPaymentMasterById(
+                                                                          paymentId);
+                                                                      //! loadPaymentDetail
+                                                                      await loadPaymentDetail(
+                                                                          paymentId);
+
+                                                                      //! loadPaymentDetail.Image
+                                                                      await loadPaymentDetailImage(
+                                                                          paymentId);
+                                                                      //! loadPaymentDetail.Remark
+                                                                      await loadPaymentDetailRemark(
+                                                                          paymentId);
+
+                                                                      Navigator.pop(
+                                                                          context);
+                                                                      showDialog(
+                                                                        barrierDismissible:
+                                                                            false,
+                                                                        context:
+                                                                            context,
+                                                                        builder:
+                                                                            (context) {
+                                                                          return const Center(
+                                                                            child:
+                                                                                Card(
+                                                                              elevation: 0,
+                                                                              color: Color.fromARGB(0, 255, 255, 255),
+                                                                              child: Text(
+                                                                                'Save Success..',
+                                                                                style: TextStyle(color: Colors.green, fontSize: 24),
+                                                                              ),
+                                                                            ),
+                                                                          );
+                                                                        },
+                                                                      );
+                                                                      await Future.delayed(
+                                                                          const Duration(
+                                                                              milliseconds: 300),
+                                                                          () {
+                                                                        Navigator.pop(
+                                                                            context);
+                                                                      });
+                                                                      setState(
+                                                                          () {
+                                                                        isSend =
+                                                                            true;
+                                                                      });
+                                                                      //!Print
+                                                                      final doc =
+                                                                          pw.Document();
+                                                                      await _genPDFDailyByEmpForm(
+                                                                          doc,
+                                                                          lPaymentMaster,
+                                                                          lPaymentDetail,
+                                                                          widget
+                                                                              .lEmp,
+                                                                          lSite
+                                                                              .where((ee) => ee.site_id == siteToAddPaymentType)
+                                                                              .toList());
+                                                                      await Future.delayed(
+                                                                          const Duration(
+                                                                              milliseconds: 100),
+                                                                          () async {
+                                                                        await showDialog(
+                                                                            context:
+                                                                                context,
+                                                                            builder:
+                                                                                (context) {
+                                                                              return Padding(
+                                                                                padding: const EdgeInsets.all(8.0),
+                                                                                child: DailyByEmpForm(doc: doc, pdfFileName: printNumber),
+                                                                              );
+                                                                            });
+                                                                      });
+                                                                    });
+                                                                  } else if (isStatusScreen ==
+                                                                          'create' ||
+                                                                      isStatusScreen ==
+                                                                          'reject') {
+                                                                    Future.delayed(
+                                                                        const Duration(
+                                                                            seconds:
+                                                                                1),
+                                                                        () async {
+                                                                      await updatePayment(
+                                                                          paymentId);
+                                                                      for (var pd
+                                                                          in lPaymentDetail) {
+                                                                        if (lPaymentDetailId
+                                                                            .where((e) =>
+                                                                                e ==
+                                                                                pd.tlpayment_detail_id)
+                                                                            .isNotEmpty) {
+                                                                          await updatePaymentDetail(
+                                                                              pd.tlpayment_detail_id);
+                                                                        } else {
+                                                                          await createPaymentDetailByModel(
+                                                                              pd);
+                                                                        }
+                                                                      }
+                                                                      for (var pdr
+                                                                          in lPaymentRemark) {
+                                                                        if (lPaymentRemarkId
+                                                                            .where((e) =>
+                                                                                e ==
+                                                                                pdr.tlpayment_d_remark_id)
+                                                                            .isNotEmpty) {
+                                                                          await updatePaymentDetailRemark(
+                                                                              pdr.tlpayment_d_remark_id);
+                                                                        } else {
+                                                                          await createPaymentDetailRemarkByModel(
+                                                                              pdr);
+                                                                        }
+                                                                      }
+
+                                                                      for (var pdi
+                                                                          in lPaymentImage) {
+                                                                        if (lPaymentImageDB
+                                                                            .where((e) =>
+                                                                                e.tlpayment_detail_image_id ==
+                                                                                pdi.tlpayment_detail_image_id)
+                                                                            .isNotEmpty) {
+                                                                          await updatePaymentDetailImage(
+                                                                              pdi.tlpayment_detail_image_id);
+                                                                        } else {
+                                                                          await createPaymentDetailImageDBByModel(
+                                                                              pdi);
+                                                                          await createPaymentDetailImageFolderByModel(
+                                                                              pdi);
+                                                                        }
+                                                                      }
+                                                                      await deletePaymentDetailRemark();
+                                                                      await deletePaymentDetailImage();
+
+                                                                      //! loadPayment
+                                                                      await loadPaymentMasterById(
+                                                                          paymentId);
+                                                                      //! loadPaymentDetail
+                                                                      await loadPaymentDetail(
+                                                                          paymentId);
+                                                                      //! loadPaymentDetail.Image
+                                                                      await loadPaymentDetailImage(
+                                                                          paymentId);
+                                                                      //! loadPaymentDetail.Remark
+                                                                      await loadPaymentDetailRemark(
+                                                                          paymentId);
+
+                                                                      Navigator.pop(
+                                                                          context);
+                                                                      showDialog(
+                                                                        barrierDismissible:
+                                                                            false,
+                                                                        context:
+                                                                            context,
+                                                                        builder:
+                                                                            (context) {
+                                                                          return const Center(
+                                                                            child:
+                                                                                Card(
+                                                                              elevation: 0,
+                                                                              color: Color.fromARGB(0, 255, 255, 255),
+                                                                              child: Text(
+                                                                                'Update Success..',
+                                                                                style: TextStyle(color: Colors.green, fontSize: 24),
+                                                                              ),
+                                                                            ),
+                                                                          );
+                                                                        },
+                                                                      );
+                                                                      await Future.delayed(
+                                                                          const Duration(
+                                                                              milliseconds: 300),
+                                                                          () {
+                                                                        Navigator.pop(
+                                                                            context);
+
+                                                                        setState(
+                                                                            () {
+                                                                          isSend =
+                                                                              true;
+                                                                        });
+                                                                      });
+                                                                      //!Print
+                                                                      final doc =
+                                                                          pw.Document();
+                                                                      await _genPDFDailyByEmpForm(
+                                                                          doc,
+                                                                          lPaymentMaster,
+                                                                          lPaymentDetail,
+                                                                          widget
+                                                                              .lEmp,
+                                                                          lSite
+                                                                              .where((ee) => ee.site_id == siteToAddPaymentType)
+                                                                              .toList());
+                                                                      await Future.delayed(
+                                                                          const Duration(
+                                                                              milliseconds: 100),
+                                                                          () async {
+                                                                        await showDialog(
+                                                                            context:
+                                                                                context,
+                                                                            builder:
+                                                                                (context) {
+                                                                              return Padding(
+                                                                                padding: const EdgeInsets.all(8.0),
+                                                                                child: DailyByEmpForm(doc: doc, pdfFileName: printNumber),
+                                                                              );
+                                                                            });
+                                                                      });
+                                                                    });
+                                                                  }
+                                                                }
+                                                              },
+                                                            )
+                                                          : null,
                                                     ),
                                                   ),
+                                                  SizedBox(
+                                                    child: isStatusScreen ==
+                                                                'create' ||
+                                                            isStatusScreen ==
+                                                                'reject'
+                                                        ? Tooltip(
+                                                            message: isSend
+                                                                ? ''
+                                                                : 'กรุณา Save ก่อนทำการเลือกผู้ตรวจสอบ',
+                                                            child:
+                                                                ElevatedButton(
+                                                              style:
+                                                                  ElevatedButton
+                                                                      .styleFrom(
+                                                                shape: RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            50)),
+                                                                backgroundColor:
+                                                                    isSend
+                                                                        ? null
+                                                                        : Colors
+                                                                            .grey,
+                                                              ),
+                                                              child: const Text(
+                                                                  ' ส่งตรวจสอบ การปิดผลัด '),
+                                                              onPressed:
+                                                                  () async {
+                                                                if (isSend) {
+                                                                  if (lPaymentDetail
+                                                                      .isEmpty) {
+                                                                  } else {
+                                                                    showDialog(
+                                                                        barrierDismissible:
+                                                                            false,
+                                                                        context:
+                                                                            context,
+                                                                        builder:
+                                                                            (context) {
+                                                                          return Center(
+                                                                            child:
+                                                                                SizedBox(
+                                                                              height: 300,
+                                                                              width: 600,
+                                                                              child: SelectApproverPopup(
+                                                                                paymentId: paymentId,
+                                                                                empid: widget.lEmp.first.employee_id,
+                                                                                siteId: widget.lEmp.first.site_id,
+                                                                                callbackUpdate: () async {
+                                                                                  // await updatePayment(
+                                                                                  //     paymentId);
+                                                                                  await updatePaymentStatus(paymentId);
+                                                                                },
+                                                                                callbackClear: () {
+                                                                                  lPaymentMaster.clear();
+                                                                                  lPaymentChoice.clear();
+                                                                                  lPaymentDetail.clear();
+                                                                                  lPaymentDetailId.clear();
+                                                                                  lPaymentDetailTypeId.clear();
+                                                                                  lPaymentImage.clear();
+                                                                                  lPaymentImageDB.clear();
+                                                                                  lPaymentImageRemoveId.clear();
+                                                                                  lPaymentRemark.clear();
+                                                                                  lPaymentRemarkId.clear();
+                                                                                  lPaymentRemarkRemoveId.clear();
+
+                                                                                  dTotalActual = 0.00;
+                                                                                  dTotalPaid = 0.00;
+                                                                                  dTotalBalance = 0.00;
+                                                                                  paymentControllers.clear();
+
+                                                                                  isSend = false;
+                                                                                  isStatusScreen = 'New';
+
+                                                                                  setState(() {});
+                                                                                },
+                                                                              ),
+                                                                            ),
+                                                                          );
+                                                                        });
+                                                                  }
+                                                                }
+                                                              },
+                                                            ),
+                                                          )
+                                                        : null,
+                                                  ),
                                                 ],
+                                              ),
+                                              const SizedBox(
+                                                height: 8,
                                               )
                                             ],
                                           )),
@@ -1707,6 +2083,103 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
     });
   }
 
+  Future loadDataUpdatePaymentImed(
+      String paymentId, emp_id, site_id, date, startTime, endTime) async {
+    lReceiptImed = [];
+    //lPaymentDetail = [];
+
+    //lPaymentDetailTypeId = [];
+    dTotalPaid = 0.0;
+    dTotalActual = 0.0;
+    dTotalBalance = 0.0;
+    dTotalIncome = 0.0;
+    siteToAddPaymentType = site_id;
+    FormData formData = FormData.fromMap({
+      "token": TlConstant.token,
+      "emp_id": emp_id,
+      "site_id": site_id,
+      "date_": date,
+      "startTime": startTime,
+      "endTime": endTime
+    });
+    String api = '${TlConstant.syncApi}receipt.php?id=imedRec';
+
+    await Dio().post(api, data: formData).then((value) {
+      if (value.data == null) {
+        print('Receipt Imed Null !');
+      } else {
+        for (var receipt in value.data) {
+          ReceiptModel newRec = ReceiptModel.fromMap(receipt);
+          lReceiptImed.add(newRec);
+        }
+        for (var i = 0; i < lReceiptImed.length; i++) {
+          List<PaymentDetailModel> upPD = lPaymentDetail
+              .where((e) =>
+                  e.tlpayment_id == paymentId &&
+                  e.tlpayment_type_id == lReceiptImed[i].paid_method_func &&
+                  e.tlpayment_type == lReceiptImed[i].paid_method_th &&
+                  e.tlpayment_type_detail_id ==
+                      lReceiptImed[i].c_num.toString() &&
+                  e.tlpayment_type_detail == lReceiptImed[i].paid_method_sub_th)
+              .toList();
+          //! opd_paid
+          upPD.first.opd_paid = lReceiptImed[i].opd_paid;
+          //! ipd_paid
+          upPD.first.ipd_paid = lReceiptImed[i].ipd_paid;
+          //! paid
+          upPD.first.paid = lReceiptImed[i].paid;
+          //! paid_go
+          upPD.first.paid_go = lReceiptImed[i].paid_go;
+          //! diff
+          double dPaidGo = double.parse(upPD.first.paid_go);
+
+          double dActual =
+              double.parse(upPD.first.tlpayment_detail_actual_paid);
+          double dDiff = dActual - dPaidGo;
+          upPD.first.tlpayment_detail_diff_paid = dDiff.toStringAsFixed(2);
+
+          lPaymentDetail
+              .where((eee) =>
+                  eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
+              .first
+              .opd_paid = double.parse(upPD.first.opd_paid).toStringAsFixed(2);
+
+          lPaymentDetail
+              .where((eee) =>
+                  eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
+              .first
+              .ipd_paid = double.parse(upPD.first.ipd_paid).toStringAsFixed(2);
+
+          lPaymentDetail
+              .where((eee) =>
+                  eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
+              .first
+              .paid = double.parse(upPD.first.paid).toStringAsFixed(2);
+
+          lPaymentDetail
+              .where((eee) =>
+                  eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
+              .first
+              .paid_go = double.parse(upPD.first.paid_go).toStringAsFixed(2);
+
+          lPaymentDetail
+                  .where((eee) =>
+                      eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
+                  .first
+                  .tlpayment_detail_diff_paid =
+              double.parse(upPD.first.tlpayment_detail_diff_paid)
+                  .toStringAsFixed(2);
+
+          dTotalPaid += double.parse(upPD.first.paid_go);
+          dTotalActual += dActual;
+          dTotalBalance += double.parse(upPD.first.tlpayment_detail_diff_paid);
+          dTotalIncome += double.parse(upPD.first.paid);
+        }
+        groupName = groupPaymentDeposit(lPaymentDetail);
+      }
+    });
+  }
+
   Future loadPaymentByDate(
       String employee_id, String siteDDValue, String selectedDate) async {
     lPaymentChoice = [];
@@ -1876,15 +2349,19 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
     String moDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
     String moTime = DateFormat('HH:mm:ss').format(DateTime.now());
     String comment = paymentControllers.text;
+    String tIncome = dTotalIncome.toStringAsFixed(2);
+    String tImed = dTotalPaid.toStringAsFixed(2);
 
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
       "id": id,
+      "tImed": tImed,
       "tAct": tAct,
       "tBal": tBal,
       "moDate": moDate,
       "moTime": moTime,
       "comment": comment,
+      "tIncome": tIncome,
       "printnumber": printNumber,
     });
     String api = '${TlConstant.syncApi}tlPayment.php?id=update';
@@ -1903,6 +2380,14 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
   }
 
   Future updatePaymentDetail(String id) async {
+    String opd =
+        lPaymentDetail.where((e) => e.tlpayment_detail_id == id).first.opd_paid;
+    String ipd =
+        lPaymentDetail.where((e) => e.tlpayment_detail_id == id).first.ipd_paid;
+    String paid =
+        lPaymentDetail.where((e) => e.tlpayment_detail_id == id).first.paid;
+    String paidgo =
+        lPaymentDetail.where((e) => e.tlpayment_detail_id == id).first.paid_go;
     String act = lPaymentDetail
         .where((e) => e.tlpayment_detail_id == id)
         .first
@@ -1919,6 +2404,10 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
       "id": id,
+      "opd": opd,
+      "ipd": ipd,
+      "paid": paid,
+      "paidgo": paidgo,
       "act": act,
       "balance": balance,
       "comment": comment,
@@ -2227,23 +2716,21 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
   ) async {
     var pGroupName = groupPaymentDeposit(pLPaymentDetail);
 
-    Uint8List imagePNG =
-        (await rootBundle.load('images/logothonglor_circle.png'))
-            .buffer
-            .asUint8List();
     var siteName = pLSite.first.site_name;
-//Prompt-Regular.ttf
-    var arabicFont = //Prompt-Medium.ttf
-        pw.Font.ttf(await rootBundle.load("fonts/RSU-Regular.ttf"));
 
+    var arabicFont =
+        pw.Font.ttf(await rootBundle.load("fonts/RSU-Regular.ttf"));
     var fontBold = pw.Font.ttf(await rootBundle.load("fonts/RSU-Bold.ttf"));
 
-    var imagelogo = pw.MemoryImage(imagePNG);
-
-    var countrowSitepdf = pLPaymentDetail.length;
-    String yyyynow = DateTime.now().year.toString();
-    String MMnow = DateTime.now().month.toString();
-    String ddnow = DateTime.now().day.toString();
+    // Uint8List imagePNG =
+    //     (await rootBundle.load('images/logothonglor_circle.png'))
+    //         .buffer
+    //         .asUint8List();
+    // var imagelogo = pw.MemoryImage(imagePNG);
+    // var countrowSitepdf = pLPaymentDetail.length;
+    // String yyyynow = DateTime.now().year.toString();
+    // String MMnow = DateTime.now().month.toString();
+    // String ddnow = DateTime.now().day.toString();
 
     int iPdfIndex = 0;
 

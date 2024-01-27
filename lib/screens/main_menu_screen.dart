@@ -53,10 +53,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     //     bsp_id: '99107',
     //     bsp_name: 'test',
     //     fix_employee_type_id: '4');
-
     // lEmpPeeOill.add(PeeOill);
     position = widget.lEmp.first.employee_position;
-    print(widget.lEmp.first);
     print('Width : ${MediaQuery.of(context).size.width}');
     print('Height : ${MediaQuery.of(context).size.height}');
     return Material(
