@@ -202,15 +202,19 @@ class _DepositImageScreenState extends State<DepositImageScreen> {
                                                                       child: lDepositImage[index]
                                                                               .tldeposit_image_base64
                                                                               .isEmpty
-                                                                          ? Image
-                                                                              .network(
-                                                                              lDepositImageDB.where((e) => e.tldeposit_image_id == lDepositImage[index].tldeposit_image_id).first.tldeposit_image_path,
-                                                                              fit: BoxFit.contain,
+                                                                          ? Container(
+                                                                              width: MediaQuery.of(context).size.width / 1.5,
+                                                                              child: Image.network(
+                                                                                lDepositImageDB.where((e) => e.tldeposit_image_id == lDepositImage[index].tldeposit_image_id).first.tldeposit_image_path,
+                                                                                fit: BoxFit.contain,
+                                                                              ),
                                                                             )
-                                                                          : Image
-                                                                              .memory(
-                                                                              base64.decode(lDepositImage[index].tldeposit_image_base64),
-                                                                              fit: BoxFit.contain, // ปรับขนาดรูปภาพให้พอดีกับ widget
+                                                                          : Container(
+                                                                              width: MediaQuery.of(context).size.width / 1.5,
+                                                                              child: Image.memory(
+                                                                                base64.decode(lDepositImage[index].tldeposit_image_base64),
+                                                                                fit: BoxFit.contain, // ปรับขนาดรูปภาพให้พอดีกับ widget
+                                                                              ),
                                                                             ),
                                                                     ),
                                                                   ),

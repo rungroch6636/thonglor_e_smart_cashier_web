@@ -16,7 +16,6 @@ class DepositModel {
   String tldeposit_status;
   String tldeposit_create_by;
   String tlpayment_rec_date;
-  String create_by_fullname;
   DepositModel({
     required this.tldeposit_id,
     required this.site_id,
@@ -32,7 +31,6 @@ class DepositModel {
     required this.tldeposit_status,
     required this.tldeposit_create_by,
     required this.tlpayment_rec_date,
-    required this.create_by_fullname,
   });
 
   DepositModel copyWith({
@@ -50,7 +48,6 @@ class DepositModel {
     String? tldeposit_status,
     String? tldeposit_create_by,
     String? tlpayment_rec_date,
-    String? create_by_fullname,
   }) {
     return DepositModel(
       tldeposit_id: tldeposit_id ?? this.tldeposit_id,
@@ -67,7 +64,6 @@ class DepositModel {
       tldeposit_status: tldeposit_status ?? this.tldeposit_status,
       tldeposit_create_by: tldeposit_create_by ?? this.tldeposit_create_by,
       tlpayment_rec_date: tlpayment_rec_date ?? this.tlpayment_rec_date,
-      create_by_fullname: create_by_fullname ?? this.create_by_fullname,
     );
   }
 
@@ -87,7 +83,6 @@ class DepositModel {
       'tldeposit_status': tldeposit_status,
       'tldeposit_create_by': tldeposit_create_by,
       'tlpayment_rec_date': tlpayment_rec_date,
-      'create_by_fullname': create_by_fullname,
     };
   }
 
@@ -107,7 +102,6 @@ class DepositModel {
       tldeposit_status: map['tldeposit_status'] as String,
       tldeposit_create_by: map['tldeposit_create_by'] as String,
       tlpayment_rec_date: map['tlpayment_rec_date'] as String,
-      create_by_fullname: map['create_by_fullname'] as String,
     );
   }
 
@@ -117,7 +111,7 @@ class DepositModel {
 
   @override
   String toString() {
-    return 'DepositModel(tldeposit_id: $tldeposit_id, site_id: $site_id, tldeposit_create_date: $tldeposit_create_date, tldeposit_create_time: $tldeposit_create_time, tldeposit_bank: $tldeposit_bank, tldeposit_bank_account: $tldeposit_bank_account, tldeposit_date: $tldeposit_date, tldeposit_total: $tldeposit_total, tldeposit_total_actual: $tldeposit_total_actual, tldeposit_total_balance: $tldeposit_total_balance, tldeposit_comment: $tldeposit_comment, tldeposit_status: $tldeposit_status, tldeposit_create_by: $tldeposit_create_by, tlpayment_rec_date: $tlpayment_rec_date, create_by_fullname: $create_by_fullname)';
+    return 'DepositModel(tldeposit_id: $tldeposit_id, site_id: $site_id, tldeposit_create_date: $tldeposit_create_date, tldeposit_create_time: $tldeposit_create_time, tldeposit_bank: $tldeposit_bank, tldeposit_bank_account: $tldeposit_bank_account, tldeposit_date: $tldeposit_date, tldeposit_total: $tldeposit_total, tldeposit_total_actual: $tldeposit_total_actual, tldeposit_total_balance: $tldeposit_total_balance, tldeposit_comment: $tldeposit_comment, tldeposit_status: $tldeposit_status, tldeposit_create_by: $tldeposit_create_by, tlpayment_rec_date: $tlpayment_rec_date)';
   }
 
   @override
@@ -138,8 +132,7 @@ class DepositModel {
       other.tldeposit_comment == tldeposit_comment &&
       other.tldeposit_status == tldeposit_status &&
       other.tldeposit_create_by == tldeposit_create_by &&
-      other.tlpayment_rec_date == tlpayment_rec_date &&
-      other.create_by_fullname == create_by_fullname;
+      other.tlpayment_rec_date == tlpayment_rec_date;
   }
 
   @override
@@ -157,7 +150,6 @@ class DepositModel {
       tldeposit_comment.hashCode ^
       tldeposit_status.hashCode ^
       tldeposit_create_by.hashCode ^
-      tlpayment_rec_date.hashCode ^
-      create_by_fullname.hashCode;
+      tlpayment_rec_date.hashCode;
   }
 }

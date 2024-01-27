@@ -36,12 +36,13 @@ class _AddPaymentTypeScreenState extends State<AddPaymentTypeScreen> {
   List<String> lPaymentTypeNameCallBack = [];
 
   String paymentTypeValue = 'เงินสด';
-  String paymentTypeId = '01';
+  String paymentTypeId = '1001';
 
   String paymentTypeDetailValue = 'เงินสด';
-  String paymentTypeDetailId = '001';
+  String paymentTypeDetailId = '10001';
 
   bool isCheckRepeat = false;
+  bool isLoad = true;
 
   @override
   void initState() {
@@ -71,48 +72,19 @@ class _AddPaymentTypeScreenState extends State<AddPaymentTypeScreen> {
           .where((eee) => eee.tlpayment_type_detail_id == paymentTypeDetailId)
           .first
           .tlpayment_type_detail;
-
-      // //! Todo ยังไม่ทำ
-      // if (widget.lPaymentDetailTypeIdNotShow.contains(paymentTypeDetailId)) {
-      //   isCheckRepeat = true;
-      // } else {
-      //   isCheckRepeat = false;
-      // }
-
-      // var lPaymentTypeDetail_ = lPaymentTypeDetail
-      //     .where((notShow) => !widget.lPaymentDetailTypeIdNotShow
-      //         .contains(notShow.tlpayment_type_detail_id))
-      //     .toList();
-
-      // if (lPaymentTypeDetail_.isNotEmpty) {
-      //   lPaymentTypeDetail_.forEach((element) {
-      //     lPaymentTypeDetailShow.add(element.tlpayment_type_detail);
-      //   });
-      //   paymentTypeDetailId = lPaymentTypeDetail_
-      //       .where((ele) =>
-      //           ele.tlpayment_type_detail == lPaymentTypeDetailShow.first)
-      //       .first
-      //       .tlpayment_type_detail_id;
-      //   paymentTypeDetailValue = lPaymentTypeDetailShow.first;
-
-      //   paymentTypeId = lPaymentTypeDetail_
-      //       .where((ele) =>
-      //           ele.tlpayment_type_detail == lPaymentTypeDetailShow.first)
-      //       .first
-      //       .tlpayment_type_id;
-      //   paymentTypeValue = lPaymentType
-      //       .where((elem) => elem.tlpayment_type_id == paymentTypeId)
-      //       .first
-      //       .tlpayment_type;
-      // }
+      isLoad = false;
+      if (widget.lPaymentDetailTypeIdNotShow
+          .where((element) => element == '10001')
+          .isNotEmpty) {
+        isCheckRepeat = true;
+      }
     });
     lPaymentTypeNameCallBack = widget.lPaymentDetailTypeIdNotShow;
   }
 
   @override
   Widget build(BuildContext context) {
-    return 
-    Material(
+    return Material(
         borderRadius: BorderRadius.circular(16),
         child: SizedBox(
           height: 200,
@@ -127,21 +99,23 @@ class _AddPaymentTypeScreenState extends State<AddPaymentTypeScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Center(
-                    child: lPaymentTypeShow.isEmpty
-                        ? Text('ได้ทำการเพิ่ม Payment Type ไปหมดแล้ว')
-                        : Row(
-                            children: [
-                              Expanded(child: _buildDropdownPaymentType()),
-                              SizedBox(
-                                width: 8,
-                              ),
-                              Expanded(
-                                  child: lPaymentTypeDetailShow.isEmpty
-                                      ? Text(
-                                          'ได้ทำการเพิ่ม Payment Type ไปหมดแล้ว')
-                                      : _buildDropdownPaymentTypeDetail()),
-                            ],
-                          )),
+                    child: isLoad
+                        ? Center(child: CircularProgressIndicator())
+                        : lPaymentTypeShow.isEmpty
+                            ? Text('ได้ทำการเพิ่ม Payment Type ไปหมดแล้ว')
+                            : Row(
+                                children: [
+                                  Expanded(child: _buildDropdownPaymentType()),
+                                  SizedBox(
+                                    width: 8,
+                                  ),
+                                  Expanded(
+                                      child: lPaymentTypeDetailShow.isEmpty
+                                          ? Text(
+                                              'ได้ทำการเพิ่ม Payment Type ไปหมดแล้ว')
+                                          : _buildDropdownPaymentTypeDetail()),
+                                ],
+                              )),
               ),
               SizedBox(
                   child: isCheckRepeat == true
@@ -231,7 +205,8 @@ class _AddPaymentTypeScreenState extends State<AddPaymentTypeScreen> {
 
           paymentTypeDetailId = lPaymentTypeDetail
               .where((eee) =>
-                  eee.tlpayment_type_detail == lPaymentTypeDetailShow.first)
+                  eee.tlpayment_type_detail == lPaymentTypeDetailShow.first &&
+                  eee.tlpayment_type_id == paymentTypeId)
               .first
               .tlpayment_type_detail_id;
 
@@ -247,6 +222,7 @@ class _AddPaymentTypeScreenState extends State<AddPaymentTypeScreen> {
           } else {
             isCheckRepeat = false;
           }
+          print('paymentTypeDetailId =  ${paymentTypeDetailId}');
         });
       },
       items: lPaymentTypeShow.map<DropdownMenuItem<String>>((String value) {
@@ -277,7 +253,9 @@ class _AddPaymentTypeScreenState extends State<AddPaymentTypeScreen> {
         setState(() {
           paymentTypeDetailValue = value!;
           paymentTypeDetailId = lPaymentTypeDetail
-              .where((e) => e.tlpayment_type_detail == paymentTypeDetailValue)
+              .where((e) =>
+                  e.tlpayment_type_detail == paymentTypeDetailValue &&
+                  e.tlpayment_type_id == paymentTypeId)
               .first
               .tlpayment_type_detail_id;
           print('paymentTypeDetailId =  ${paymentTypeDetailId}');
@@ -307,7 +285,7 @@ class _AddPaymentTypeScreenState extends State<AddPaymentTypeScreen> {
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
     });
-    String api = '${TlConstant.syncApi}tlPaymentType.php';
+    String api = '${TlConstant.syncApi}tlPaymentType.php?id=1';
     lPaymentType = [];
     await Dio().post(api, data: formData).then((value) {
       if (value.data == null) {
@@ -326,7 +304,7 @@ class _AddPaymentTypeScreenState extends State<AddPaymentTypeScreen> {
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
     });
-    String api = '${TlConstant.syncApi}tlPaymentTypeDetail.php';
+    String api = '${TlConstant.syncApi}tlPaymentTypeDetail.php?id=1';
     lPaymentTypeDetail = [];
     await Dio().post(api, data: formData).then((value) {
       if (value.data == null) {

@@ -1307,7 +1307,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                           child: Column(
                                                             children: [
                                                               Text(
-                                                                'บันทึก การปิดเวร',
+                                                                'บันทึก การปิดผลัด',
                                                                 style: TextStyle(
                                                                     fontSize:
                                                                         16),
@@ -1618,7 +1618,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
     });
-    String api = '${TlConstant.syncApi}baseSiteBranch.php';
+    String api = '${TlConstant.syncApi}baseSiteBranch.php?id=imed';
     lSite = [];
     await Dio().post(api, data: formData).then((value) {
       if (value.data == null) {
@@ -1642,6 +1642,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
     dTotalPaid = 0.0;
     dTotalActual = 0.0;
     dTotalBalance = 0.0;
+    dTotalIncome = 0.0;
     siteToAddPaymentType = site_id;
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
@@ -1651,7 +1652,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
       "startTime": startTime,
       "endTime": endTime
     });
-    String api = '${TlConstant.syncApi}receipt.php?id=2';
+    String api = '${TlConstant.syncApi}receipt.php?id=imedRec';
 
     await Dio().post(api, data: formData).then((value) {
       if (value.data == null) {
@@ -2199,6 +2200,9 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
 
   groupPaymentDeposit(List<PaymentDetailModel> lPaymentDetail) {
     double dTotalIncome = 0.00;
+    lPaymentDetail.sort((a, b) => int.parse(a.tlpayment_type_id)
+        .compareTo(int.parse(b.tlpayment_type_id)));
+
     return groupBy(lPaymentDetail, (gKey) {
       dTotalIncome = 0.00;
       lPaymentDetail
@@ -2267,17 +2271,17 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                               pw.SizedBox(height: 8),
                               pw.Text('บริษัท โรงพยาบาลสัตว์ทองหล่อ จำกัด',
                                   style: pw.TextStyle(
-                                      font: fontBold, fontSize: 16)),
+                                      font: fontBold, fontSize: 14)),
                               pw.Text('Thonglor Pet Hospital Co.,Ltd.',
                                   style: pw.TextStyle(
-                                      font: fontBold, fontSize: 16)),
+                                      font: fontBold, fontSize: 14)),
                               pw.Text(
                                   'รายงานปิดผลัด จำแนกตามประเภทเงิน (รวม VAT)',
-                                  style: pw.TextStyle(fontSize: 12)),
+                                  style: pw.TextStyle(fontSize: 10)),
                               pw.SizedBox(height: 8),
                               pw.Text(
                                   'ปิดผลัด ${siteName} ผลัดวันที่ ${pLPayment.first.tlpayment_rec_date}  โดย ${pLEmployee.first.emp_fullname}',
-                                  style: pw.TextStyle(fontSize: 12)),
+                                  style: pw.TextStyle(fontSize: 10)),
                             ])),
 
                     pw.SizedBox(height: 8),
@@ -2305,7 +2309,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                         child: pw.Text('สรุปรายงานปิดผลัด',
                                             style: pw.TextStyle(
                                                 font: fontBold,
-                                                fontSize: 12,
+                                                fontSize: 10,
                                                 color: PdfColors.white))),
                                   ),
                                   pw.SizedBox(
@@ -2314,7 +2318,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                         child: pw.Text('สรุปยอดรายได้',
                                             style: pw.TextStyle(
                                                 font: fontBold,
-                                                fontSize: 12,
+                                                fontSize: 10,
                                                 color: PdfColors.white))),
                                   ),
                                   pw.SizedBox(
@@ -2323,7 +2327,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                         child: pw.Text('สรุปยอดส่งเงิน',
                                             style: pw.TextStyle(
                                                 font: fontBold,
-                                                fontSize: 12,
+                                                fontSize: 10,
                                                 color: PdfColors.white))),
                                   ),
                                   pw.SizedBox(
@@ -2332,7 +2336,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                         child: pw.Text('ยอดนำส่งเงินจริง',
                                             style: pw.TextStyle(
                                                 font: fontBold,
-                                                fontSize: 12,
+                                                fontSize: 10,
                                                 color: PdfColors.white))),
                                   ),
                                   pw.Container(
@@ -2341,7 +2345,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                       child: pw.Text('หมายเหตุ',
                                           style: pw.TextStyle(
                                               font: fontBold,
-                                              fontSize: 12,
+                                              fontSize: 10,
                                               color: PdfColors.white)),
                                     ),
                                   ),
@@ -2374,9 +2378,9 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                 const pw.EdgeInsets.symmetric(
                                                     horizontal: 8, vertical: 4),
                                             child: pw.Text(
-                                              '${pFullName} ::: xx${iPdfIndex}xx',
+                                              pFullName,
                                               style: pw.TextStyle(
-                                                  font: fontBold, fontSize: 10),
+                                                  font: fontBold, fontSize: 8),
                                             ),
                                           ),
                                         )),
@@ -2396,16 +2400,18 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                             mainAxisAlignment: pw
                                                 .MainAxisAlignment.spaceAround,
                                             children: [
+                                              pw.SizedBox(
+                                                width: 20,
+                                              ),
                                               pw.Expanded(
                                                 child: pw.SizedBox(
                                                   child: pw.Align(
                                                     alignment:
-                                                        pw.Alignment.center,
+                                                        pw.Alignment.centerLeft,
                                                     child: pw.Text(
-                                                      pPaymentDetail
-                                                          .tlpayment_type_detail,
+                                                      '${pPaymentDetail.tlpayment_type_detail}',
                                                       style: pw.TextStyle(
-                                                          fontSize: 10),
+                                                          fontSize: 8),
                                                     ),
                                                   ),
                                                 ),
@@ -2423,7 +2429,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                       oCcy.format(double.parse(
                                                           pPaymentDetail.paid)),
                                                       style: pw.TextStyle(
-                                                          fontSize: 10),
+                                                          fontSize: 8),
                                                     ),
                                                   ),
                                                 ),
@@ -2442,7 +2448,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                           pPaymentDetail
                                                               .paid_go)),
                                                       style: pw.TextStyle(
-                                                          fontSize: 10),
+                                                          fontSize: 8),
                                                     ),
                                                   ),
                                                 ),
@@ -2462,7 +2468,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                 .tlpayment_detail_actual_paid)),
                                                         style:
                                                             const pw.TextStyle(
-                                                                fontSize: 10),
+                                                                fontSize: 8),
                                                       ),
                                                     ),
                                                   )),
@@ -2471,13 +2477,12 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                 child: pw.Padding(
                                                   padding:
                                                       const pw.EdgeInsets.only(
-                                                          bottom: 8.0),
+                                                          left: 8.0),
                                                   child: pw.Text(
-                                                    'xx${iPdfIndex}xx',
-                                                    // pPaymentDetail
-                                                    //     .tlpayment_detail_comment,
+                                                    pPaymentDetail
+                                                        .tlpayment_detail_comment,
                                                     style: pw.TextStyle(
-                                                        fontSize: 10),
+                                                        fontSize: 8),
                                                   ),
                                                 ),
                                               ),
@@ -2505,7 +2510,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                               child: pw.Text('  สรุปยอด',
                                   style: pw.TextStyle(
                                     font: fontBold,
-                                    fontSize: 16,
+                                    fontSize: 14,
                                   ))),
                         )),
                         pw.SizedBox(
@@ -2518,7 +2523,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                   oCcy.format(double.parse(pLPayment
                                       .first.tlpayment_imed_total_income)),
                                   style: pw.TextStyle(
-                                      font: fontBold, fontSize: 14),
+                                      font: fontBold, fontSize: 12),
                                 ),
                               ),
                             )),
@@ -2532,7 +2537,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                   oCcy.format(double.parse(
                                       pLPayment.first.tlpayment_imed_total)),
                                   style: pw.TextStyle(
-                                      font: fontBold, fontSize: 14),
+                                      font: fontBold, fontSize: 12),
                                 ),
                               ),
                             )),
@@ -2547,7 +2552,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                     pLPayment.first.tlpayment_actual_total,
                                   )),
                                   style: pw.TextStyle(
-                                      font: fontBold, fontSize: 14),
+                                      font: fontBold, fontSize: 12),
                                 ),
                               ),
                             )),
@@ -2560,7 +2565,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                 child: pw.Text(
                                   'ขาด/เกิน\n${oCcy.format(double.parse(pLPayment.first.tlpayment_diff_abs))}',
                                   style: pw.TextStyle(
-                                      font: fontBold, fontSize: 14),
+                                      font: fontBold, fontSize: 12),
                                 ),
                               ),
                             )),
@@ -2573,10 +2578,10 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                           width: 60,
                           child: pw.Align(
                             alignment: pw.Alignment.centerLeft,
-                            child: pw.Text(' หมายเหตุ : xx${iPdfIndex}xx',
+                            child: pw.Text(' หมายเหตุ : ',
                                 style: pw.TextStyle(
                                   font: fontBold,
-                                  fontSize: 12,
+                                  fontSize: 10,
                                 )),
                           )),
                       pw.Expanded(
@@ -2587,7 +2592,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                           child:
                               pw.Text('   ${pLPayment.first.tlpayment_comment}',
                                   style: const pw.TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 10,
                                   )),
                         ),
                       ),
@@ -2632,7 +2637,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                         alignment: pw.Alignment.centerRight,
                         child: pw.Text(
                             'No. ${pLPayment.first.tlpayment_print_number}',
-                            style: const pw.TextStyle(fontSize: 10))),
+                            style: const pw.TextStyle(fontSize: 8))),
                     pw.SizedBox(height: 8),
                   ]),
             ),

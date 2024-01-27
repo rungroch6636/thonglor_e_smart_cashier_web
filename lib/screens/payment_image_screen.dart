@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 
-import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -205,15 +204,19 @@ class _PaymentImageScreenState extends State<PaymentImageScreen> {
                                                                       child: lPaymentImage[index]
                                                                               .tlpayment_image_base64
                                                                               .isEmpty
-                                                                          ? Image
-                                                                              .network(
-                                                                              lPaymentImageDB.where((e) => e.tlpayment_detail_image_id == lPaymentImage[index].tlpayment_detail_image_id).first.tlpayment_image_path,
-                                                                              fit: BoxFit.contain,
+                                                                          ? Container(
+                                                                              width: MediaQuery.of(context).size.width / 1.5,
+                                                                              child: Image.network(
+                                                                                lPaymentImageDB.where((e) => e.tlpayment_detail_image_id == lPaymentImage[index].tlpayment_detail_image_id).first.tlpayment_image_path,
+                                                                                fit: BoxFit.contain,
+                                                                              ),
                                                                             )
-                                                                          : Image
-                                                                              .memory(
-                                                                              base64.decode(lPaymentImage[index].tlpayment_image_base64),
-                                                                              fit: BoxFit.contain, // ปรับขนาดรูปภาพให้พอดีกับ widget
+                                                                          : Container(
+                                                                              width: MediaQuery.of(context).size.width / 1.5,
+                                                                              child: Image.memory(
+                                                                                base64.decode(lPaymentImage[index].tlpayment_image_base64),
+                                                                                fit: BoxFit.contain, // ปรับขนาดรูปภาพให้พอดีกับ widget
+                                                                              ),
                                                                             ),
                                                                     ),
                                                                   ),

@@ -1,7 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-class PaymentDetailDepositModel {
+class PaymentMDAndDepositMDAndFullNameModel {
+  String emp_fullname;
   String tlpayment_id;
   String tlpayment_imed_total;
   String tlpayment_actual_total;
@@ -34,7 +35,8 @@ class PaymentDetailDepositModel {
   String tldeposit_create_by;
   String tldeposit_create_by_fullname;
   String tldeposit_create_date;
-  PaymentDetailDepositModel({
+  PaymentMDAndDepositMDAndFullNameModel({
+    required this.emp_fullname,
     required this.tlpayment_id,
     required this.tlpayment_imed_total,
     required this.tlpayment_actual_total,
@@ -69,7 +71,8 @@ class PaymentDetailDepositModel {
     required this.tldeposit_create_date,
   });
 
-  PaymentDetailDepositModel copyWith({
+  PaymentMDAndDepositMDAndFullNameModel copyWith({
+    String? emp_fullname,
     String? tlpayment_id,
     String? tlpayment_imed_total,
     String? tlpayment_actual_total,
@@ -103,7 +106,8 @@ class PaymentDetailDepositModel {
     String? tldeposit_create_by_fullname,
     String? tldeposit_create_date,
   }) {
-    return PaymentDetailDepositModel(
+    return PaymentMDAndDepositMDAndFullNameModel(
+      emp_fullname: emp_fullname ?? this.emp_fullname,
       tlpayment_id: tlpayment_id ?? this.tlpayment_id,
       tlpayment_imed_total: tlpayment_imed_total ?? this.tlpayment_imed_total,
       tlpayment_actual_total: tlpayment_actual_total ?? this.tlpayment_actual_total,
@@ -141,6 +145,7 @@ class PaymentDetailDepositModel {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
+      'emp_fullname': emp_fullname,
       'tlpayment_id': tlpayment_id,
       'tlpayment_imed_total': tlpayment_imed_total,
       'tlpayment_actual_total': tlpayment_actual_total,
@@ -176,8 +181,9 @@ class PaymentDetailDepositModel {
     };
   }
 
-  factory PaymentDetailDepositModel.fromMap(Map<String, dynamic> map) {
-    return PaymentDetailDepositModel(
+  factory PaymentMDAndDepositMDAndFullNameModel.fromMap(Map<String, dynamic> map) {
+    return PaymentMDAndDepositMDAndFullNameModel(
+      emp_fullname: map['emp_fullname'] as String,
       tlpayment_id: map['tlpayment_id'] as String,
       tlpayment_imed_total: map['tlpayment_imed_total'] as String,
       tlpayment_actual_total: map['tlpayment_actual_total'] as String,
@@ -215,18 +221,19 @@ class PaymentDetailDepositModel {
 
   String toJson() => json.encode(toMap());
 
-  factory PaymentDetailDepositModel.fromJson(String source) => PaymentDetailDepositModel.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory PaymentMDAndDepositMDAndFullNameModel.fromJson(String source) => PaymentMDAndDepositMDAndFullNameModel.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
   String toString() {
-    return 'PaymentDetailDepositModel(tlpayment_id: $tlpayment_id, tlpayment_imed_total: $tlpayment_imed_total, tlpayment_actual_total: $tlpayment_actual_total, tlpayment_diff_abs: $tlpayment_diff_abs, tlpayment_rec_date: $tlpayment_rec_date, tlpayment_rec_time_from: $tlpayment_rec_time_from, tlpayment_rec_time_to: $tlpayment_rec_time_to, tlpayment_rec_site: $tlpayment_rec_site, tlpayment_rec_by: $tlpayment_rec_by, tlpayment_create_date: $tlpayment_create_date, tlpayment_create_time: $tlpayment_create_time, tlpayment_modify_date: $tlpayment_modify_date, tlpayment_modify_time: $tlpayment_modify_time, tlpayment_status: $tlpayment_status, tlpayment_merge_id: $tlpayment_merge_id, tlpayment_comment: $tlpayment_comment, tlpayment_detail_id: $tlpayment_detail_id, tlpayment_type_id: $tlpayment_type_id, tlpayment_type: $tlpayment_type, tlpayment_type_detail_id: $tlpayment_type_detail_id, tlpayment_type_detail: $tlpayment_type_detail, paid_go: $paid_go, tlpayment_detail_site_id: $tlpayment_detail_site_id, tlpayment_detail_actual_paid: $tlpayment_detail_actual_paid, tlpayment_detail_diff_paid: $tlpayment_detail_diff_paid, tlpayment_detail_comment: $tlpayment_detail_comment, ischeck: $ischeck, tldeposit_id: $tldeposit_id, tldeposit_detail_id: $tldeposit_detail_id, tldeposit_create_by: $tldeposit_create_by, tldeposit_create_by_fullname: $tldeposit_create_by_fullname, tldeposit_create_date: $tldeposit_create_date)';
+    return 'PaymentMDAndDepositMDAndFullNameModel(emp_fullname: $emp_fullname, tlpayment_id: $tlpayment_id, tlpayment_imed_total: $tlpayment_imed_total, tlpayment_actual_total: $tlpayment_actual_total, tlpayment_diff_abs: $tlpayment_diff_abs, tlpayment_rec_date: $tlpayment_rec_date, tlpayment_rec_time_from: $tlpayment_rec_time_from, tlpayment_rec_time_to: $tlpayment_rec_time_to, tlpayment_rec_site: $tlpayment_rec_site, tlpayment_rec_by: $tlpayment_rec_by, tlpayment_create_date: $tlpayment_create_date, tlpayment_create_time: $tlpayment_create_time, tlpayment_modify_date: $tlpayment_modify_date, tlpayment_modify_time: $tlpayment_modify_time, tlpayment_status: $tlpayment_status, tlpayment_merge_id: $tlpayment_merge_id, tlpayment_comment: $tlpayment_comment, tlpayment_detail_id: $tlpayment_detail_id, tlpayment_type_id: $tlpayment_type_id, tlpayment_type: $tlpayment_type, tlpayment_type_detail_id: $tlpayment_type_detail_id, tlpayment_type_detail: $tlpayment_type_detail, paid_go: $paid_go, tlpayment_detail_site_id: $tlpayment_detail_site_id, tlpayment_detail_actual_paid: $tlpayment_detail_actual_paid, tlpayment_detail_diff_paid: $tlpayment_detail_diff_paid, tlpayment_detail_comment: $tlpayment_detail_comment, ischeck: $ischeck, tldeposit_id: $tldeposit_id, tldeposit_detail_id: $tldeposit_detail_id, tldeposit_create_by: $tldeposit_create_by, tldeposit_create_by_fullname: $tldeposit_create_by_fullname, tldeposit_create_date: $tldeposit_create_date)';
   }
 
   @override
-  bool operator ==(covariant PaymentDetailDepositModel other) {
+  bool operator ==(covariant PaymentMDAndDepositMDAndFullNameModel other) {
     if (identical(this, other)) return true;
   
     return 
+      other.emp_fullname == emp_fullname &&
       other.tlpayment_id == tlpayment_id &&
       other.tlpayment_imed_total == tlpayment_imed_total &&
       other.tlpayment_actual_total == tlpayment_actual_total &&
@@ -263,7 +270,8 @@ class PaymentDetailDepositModel {
 
   @override
   int get hashCode {
-    return tlpayment_id.hashCode ^
+    return emp_fullname.hashCode ^
+      tlpayment_id.hashCode ^
       tlpayment_imed_total.hashCode ^
       tlpayment_actual_total.hashCode ^
       tlpayment_diff_abs.hashCode ^

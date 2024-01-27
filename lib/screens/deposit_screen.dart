@@ -7,9 +7,10 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:thonglor_e_smart_cashier_web/models/bank_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/depositImageTemp_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/depositImage_model.dart';
-import 'package:thonglor_e_smart_cashier_web/models/paymentDetailDeposit_model.dart';
+import 'package:thonglor_e_smart_cashier_web/models/paymentMDAndDepositMDAndFullName_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/paymentDetail_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/payment_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/receipt_model.dart';
@@ -21,6 +22,7 @@ import 'package:collection/collection.dart';
 
 import '../models/deposit_model.dart';
 import '../models/employee_model.dart';
+import '../models/paymentMDAndDepositMD_model.dart';
 
 class DepositScreen extends StatefulWidget {
   List<EmployeeModel> lEmp;
@@ -74,7 +76,9 @@ class _DepositScreenState extends State<DepositScreen> {
   List<PaymentDetailModel> lPaymentDetail = [];
   List<PaymentModel> lPayment = [];
 
-  List<PaymentDetailDepositModel> lPaymentDetailDeposit = [];
+  List<PaymentMDAndDepositMDAndFullNameModel>
+      lPaymentMDAndDepositMDAndFullName = [];
+  List<EmployeeModel> lEmployeeDeposit = [];
   String isStatusScreen = '';
   TextEditingController depositCommentController = TextEditingController();
   TextEditingController depositActualController = TextEditingController();
@@ -86,12 +90,16 @@ class _DepositScreenState extends State<DepositScreen> {
 
   List<DepositModel> lDepositChoice = [];
 
+  List<String> lBankNumber = [];
+  List<BankModel> lBank = [];
+  String bankNumber = '';
+
   @override
   void initState() {
     super.initState();
     // TODO: implement initState
     selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      // '2023-11-07'; //DateFormat('yyyy-MM-dd').format(DateTime.now());
+    // '2023-11-07'; //DateFormat('yyyy-MM-dd').format(DateTime.now());
     Future.delayed(Duration(microseconds: 10000), () async {
       await loadSite();
       lSite.forEach((element) {
@@ -130,7 +138,6 @@ class _DepositScreenState extends State<DepositScreen> {
                         : SizedBox(
                             child: Row(children: [
                               Expanded(
-                                flex: 8,
                                 child: SizedBox(
                                     child: isCheckRun
                                         ? const Center(
@@ -154,8 +161,8 @@ class _DepositScreenState extends State<DepositScreen> {
                                                           padding:
                                                               const EdgeInsets
                                                                   .only(
-                                                                  bottom: 24),
-                                                          child: lPaymentDetailDeposit
+                                                                  bottom: 8),
+                                                          child: lPaymentMDAndDepositMDAndFullName
                                                                   .isEmpty
                                                               ? const SizedBox(
                                                                   height: 40,
@@ -178,7 +185,7 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                             String
                                                                                 fullName =
                                                                                 groupName.keys.elementAt(index);
-                                                                            List<PaymentDetailDepositModel>
+                                                                            List<PaymentMDAndDepositMDAndFullNameModel>
                                                                                 data =
                                                                                 groupName.values.elementAt(index);
                                                                             return Column(
@@ -200,7 +207,7 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                                     physics: const ClampingScrollPhysics(),
                                                                                     itemCount: data.length,
                                                                                     itemBuilder: (context, index) {
-                                                                                      PaymentDetailDepositModel mPayment = data[index];
+                                                                                      PaymentMDAndDepositMDAndFullNameModel mPayment = data[index];
                                                                                       return Row(
                                                                                         children: [
                                                                                           SizedBox(
@@ -259,7 +266,7 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                     horizontal:
                                                                         16,
                                                                     vertical:
-                                                                        8.0),
+                                                                        4.0),
                                                             child: Column(
                                                               children: [
                                                                 Row(
@@ -282,13 +289,11 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                       child: Container(
                                                                           color: isStatusScreen != 'New' ? Colors.grey[300] : null,
                                                                           width: 150,
-                                                                          child: TextFormField(
-                                                                            readOnly: isStatusScreen != 'New'
-                                                                                ? true
-                                                                                : false,
-                                                                            controller:
-                                                                                depositBankAccountController,
-                                                                          )),
+                                                                          child: lBankNumber.isEmpty
+                                                                              ? Text('ไม่มีข้อมูลBank')
+                                                                              : lBankNumber.length == 1
+                                                                                  ? Text(bankNumber)
+                                                                                  : _buildDropdownBank(bankNumber)),
                                                                     ),
                                                                     const SizedBox(
                                                                       width: 20,
@@ -500,138 +505,33 @@ class _DepositScreenState extends State<DepositScreen> {
                                                       ],
                                                     )),
                                               ),
-                                              SizedBox(
-                                                height: 20,
-                                              ),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 8),
-                                                child: Container(
-                                                  color: isStatusScreen != 'New'
-                                                      ? Colors.grey[300]
-                                                      : null,
-                                                  height: 42,
-                                                  child: TextFormField(
-                                                    readOnly:
+                                              Center(
+                                                child: Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(horizontal: 8),
+                                                  child: Container(
+                                                    color:
                                                         isStatusScreen != 'New'
-                                                            ? true
-                                                            : false,
-                                                    decoration:
-                                                        const InputDecoration(
-                                                            hintText:
-                                                                "หมายเหตุ : "),
-                                                    controller:
-                                                        depositCommentController,
+                                                            ? Colors.grey[300]
+                                                            : null,
+                                                    height: 42,
+                                                    child: TextFormField(
+                                                      readOnly:
+                                                          isStatusScreen !=
+                                                                  'New'
+                                                              ? true
+                                                              : false,
+                                                      decoration:
+                                                          const InputDecoration(
+                                                              hintText:
+                                                                  "หมายเหตุ : "),
+                                                      controller:
+                                                          depositCommentController,
+                                                    ),
                                                   ),
                                                 ),
                                               ),
                                               const Expanded(child: SizedBox()),
-                                              // Padding(
-                                              //   padding:
-                                              //       const EdgeInsets.all(8.0),
-                                              //   child: ElevatedButton(
-                                              //     style:
-                                              //         ElevatedButton.styleFrom(
-                                              //       backgroundColor:
-                                              //           dTotalDeposit != 0 &&
-                                              //                   isStatusScreen ==
-                                              //                       'New'
-                                              //               ? null
-                                              //               : Colors.grey,
-                                              //     ),
-                                              //     child: const Text(' Save '),
-                                              //     onPressed: () async {
-                                              //       if (dTotalDeposit != 0 &&
-                                              //           isStatusScreen ==
-                                              //               'New') {
-                                              //         showDialog(
-                                              //             context: context,
-                                              //             builder: (context) {
-                                              //               return const Center(
-                                              //                 child: SizedBox(
-                                              //                   height: 100,
-                                              //                   width: 100,
-                                              //                   child: Center(
-                                              //                     child:
-                                              //                         CircularProgressIndicator(),
-                                              //                   ),
-                                              //                 ),
-                                              //               );
-                                              //             });
-                                              //         Future.delayed(
-                                              //             Duration(seconds: 1),
-                                              //             () async {
-                                              //           //! Deposit
-                                              //           createDeposit();
-                                              //           //! DepositDetail
-                                              //           createDepositDetail();
-                                              //           //await createPaymentDetail();
-                                              //           if (lDepositImage
-                                              //               .isEmpty) {
-                                              //           } else {
-                                              //             //! DepositImageDB
-                                              //             await createDepositImageDB();
-                                              //             //! DepositImageFolder
-                                              //             await createDepositImageFolder();
-                                              //           }
-                                              //           Navigator.pop(context);
-                                              //           showDialog(
-                                              //             context: context,
-                                              //             builder: (context) {
-                                              //               return const Center(
-                                              //                 child: Card(
-                                              //                   elevation: 0,
-                                              //                   color: Color
-                                              //                       .fromARGB(
-                                              //                           0,
-                                              //                           255,
-                                              //                           255,
-                                              //                           255),
-                                              //                   child: Text(
-                                              //                     'Save Success..',
-                                              //                     style: TextStyle(
-                                              //                         color: Colors
-                                              //                             .green,
-                                              //                         fontSize:
-                                              //                             24),
-                                              //                   ),
-                                              //                 ),
-                                              //               );
-                                              //             },
-                                              //           );
-                                              //           Future.delayed(
-                                              //               const Duration(
-                                              //                   milliseconds:
-                                              //                       500),
-                                              //               () async {
-                                              //             await loadPaymentDetailDeposit(
-                                              //                 siteDDValue,
-                                              //                 selectedDate);
-                                              //             if (isNew == false) {
-                                              //               setState(() {
-                                              //                 runProcess =
-                                              //                     'loadData';
-                                              //                 isCheckRun = true;
-                                              //                 isNew = true;
-                                              //               });
-                                              //               //! loadPaymentDetail
-                                              //               setState(() {
-                                              //                 isNew = false;
-                                              //                 isCheckRun =
-                                              //                     false;
-                                              //               });
-                                              //             }
-
-                                              //             Navigator.pop(
-                                              //                 context);
-                                              //           });
-                                              //           setState(() {});
-                                              //         });
-                                              //       }
-                                              //     },
-                                              //   ),
-                                              // ),
                                               Padding(
                                                 padding:
                                                     const EdgeInsets.all(8.0),
@@ -686,6 +586,7 @@ class _DepositScreenState extends State<DepositScreen> {
                                                           await loadPaymentDetailDeposit(
                                                               siteDDValue,
                                                               selectedDate);
+
                                                           if (isNew == false) {
                                                             setState(() {
                                                               runProcess =
@@ -698,6 +599,8 @@ class _DepositScreenState extends State<DepositScreen> {
                                                               isNew = false;
                                                               isCheckRun =
                                                                   false;
+                                                              controller
+                                                                  .reset();
                                                             });
                                                           }
                                                         });
@@ -801,7 +704,7 @@ class _DepositScreenState extends State<DepositScreen> {
                               siteRec = siteDDValue;
 
                               await loadDeposit(siteDDValue, dateRec);
-
+                              await loadBank(siteDDValue);
                               if (lDepositChoice.isNotEmpty) {
                                 showDialog(
                                     context: context,
@@ -896,21 +799,32 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                       .text = lDepositChoice[
                                                                           index]
                                                                       .tldeposit_comment;
+                                                                  setState(() {
+                                                                    Navigator.of(
+                                                                            context)
+                                                                        .pop();
+                                                                    runProcess =
+                                                                        'loadData';
+                                                                    isCheckRun =
+                                                                        true;
+                                                                    isNew =
+                                                                        true;
+                                                                  });
 
                                                                   // //! loadPaymentDetail
                                                                   await loadDepositDetailByDepositId(
                                                                       depositId);
+
                                                                   // //! loadPaymentDetail.Image
                                                                   await loadPaymentDetailImage(
                                                                       depositId);
 
-                                                                  Navigator.pop(
-                                                                      context);
-                                                                  runProcess =
-                                                                      'loadData';
-
-                                                                  setState(
-                                                                      () {});
+                                                                  setState(() {
+                                                                    isNew =
+                                                                        false;
+                                                                    isCheckRun =
+                                                                        false;
+                                                                  });
                                                                 },
                                                                 onHover:
                                                                     (select) {
@@ -994,7 +908,7 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                             ),
                                                                             Text(
                                                                                 style: const TextStyle(fontSize: 14),
-                                                                                'ผู้สร้าง : ${lDepositChoice[index].create_by_fullname}'),
+                                                                                'ผู้สร้าง : ${lDepositChoice[index].tldeposit_create_by}'),
                                                                           ],
                                                                         ),
                                                                       ),
@@ -1021,6 +935,14 @@ class _DepositScreenState extends State<DepositScreen> {
                                                         Icons.note_add_rounded,
                                                       ),
                                                       onPressed: () async {
+                                                        setState(() {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                          runProcess =
+                                                              'loadData';
+                                                          isCheckRun = true;
+                                                          isNew = true;
+                                                        });
                                                         lDepositImage = [];
                                                         depositDate = DateFormat(
                                                                 'yyyy-MM-dd')
@@ -1037,21 +959,11 @@ class _DepositScreenState extends State<DepositScreen> {
                                                         await loadPaymentDetailDeposit(
                                                             siteDDValue,
                                                             selectedDate);
-                                                        if (isNew == false) {
-                                                          setState(() {
-                                                            runProcess =
-                                                                'loadData';
-                                                            isCheckRun = true;
-                                                            isNew = true;
-                                                          });
-                                                          //! loadPaymentDetail
-                                                          setState(() {
-                                                            isNew = false;
-                                                            isCheckRun = false;
-                                                            Navigator.pop(
-                                                                context);
-                                                          });
-                                                        }
+
+                                                        setState(() {
+                                                          isNew = false;
+                                                          isCheckRun = false;
+                                                        });
                                                       },
                                                     ),
                                                   ),
@@ -1061,6 +973,12 @@ class _DepositScreenState extends State<DepositScreen> {
                                           ));
                                     });
                               } else {
+                                setState(() {
+                                  runProcess = 'loadData';
+                                  isCheckRun = true;
+                                  isNew = true;
+                                });
+
                                 lDepositImage = [];
                                 depositDate = DateFormat('yyyy-MM-dd')
                                     .format(DateTime.now());
@@ -1070,18 +988,24 @@ class _DepositScreenState extends State<DepositScreen> {
                                 dTotalDeposit = 0;
                                 await loadPaymentDetailDeposit(
                                     siteDDValue, selectedDate);
-                                if (isNew == false) {
-                                  setState(() {
-                                    runProcess = 'loadData';
-                                    isCheckRun = true;
-                                    isNew = true;
-                                  });
-                                  //! loadPaymentDetail
-                                  setState(() {
-                                    isNew = false;
-                                    isCheckRun = false;
-                                  });
-                                }
+
+                                setState(() {
+                                  isNew = false;
+                                  isCheckRun = false;
+                                });
+
+                                // if (isNew == false) {
+                                //   setState(() {
+                                //     runProcess = 'loadData';
+                                //     isCheckRun = true;
+                                //     isNew = true;
+                                //   });
+                                //   //! loadPaymentDetail
+                                //   setState(() {
+                                //     isNew = false;
+                                //     isCheckRun = false;
+                                //   });
+                                // }
                               }
                             }
                           },
@@ -1151,7 +1075,7 @@ class _DepositScreenState extends State<DepositScreen> {
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
     });
-    String api = '${TlConstant.syncApi}baseSiteBranch.php';
+    String api = '${TlConstant.syncApi}baseSiteBranch.php?id=imed';
     lSite = [];
     await Dio().post(api, data: formData).then((value) {
       if (value.data == null) {
@@ -1190,8 +1114,7 @@ class _DepositScreenState extends State<DepositScreen> {
   }
 
   Future loadPaymentDetailDeposit(String siteDDValue, String date) async {
-    lPaymentDetailDeposit = [];
-
+    lPaymentMDAndDepositMDAndFullName = [];
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
       "site_id": siteDDValue,
@@ -1199,38 +1122,159 @@ class _DepositScreenState extends State<DepositScreen> {
     });
     String api = '${TlConstant.syncApi}tlPaymentDetail.php?id=deposit';
 
-    await Dio().post(api, data: formData).then((value) {
+    await Dio().post(api, data: formData).then((value) async {
       if (value.data == null) {
         print('NoData');
       } else {
         for (var pdd in value.data) {
-          PaymentDetailDepositModel newPaymentDD =
-              PaymentDetailDepositModel.fromMap(pdd);
-          lPaymentDetailDeposit.add(newPaymentDD);
-        }
+          PaymentMDAndDepositMDModel ee =
+              PaymentMDAndDepositMDModel.fromMap(pdd);
+          PaymentMDAndDepositMDAndFullNameModel newPaymentDD =
+              PaymentMDAndDepositMDAndFullNameModel(
+                  emp_fullname: await employeeFullName(ee.tlpayment_rec_by),
+                  tlpayment_id: ee.tlpayment_id,
+                  tlpayment_imed_total: ee.tlpayment_imed_total,
+                  tlpayment_actual_total: ee.tlpayment_actual_total,
+                  tlpayment_diff_abs: ee.tlpayment_diff_abs,
+                  tlpayment_rec_date: ee.tlpayment_rec_date,
+                  tlpayment_rec_time_from: ee.tlpayment_rec_time_from,
+                  tlpayment_rec_time_to: ee.tlpayment_rec_time_to,
+                  tlpayment_rec_site: ee.tlpayment_rec_site,
+                  tlpayment_rec_by: ee.tlpayment_rec_by,
+                  tlpayment_create_date: ee.tlpayment_create_date,
+                  tlpayment_create_time: ee.tlpayment_create_time,
+                  tlpayment_modify_date: ee.tlpayment_modify_date,
+                  tlpayment_modify_time: ee.tlpayment_modify_time,
+                  tlpayment_status: ee.tlpayment_status,
+                  tlpayment_merge_id: ee.tlpayment_merge_id,
+                  tlpayment_comment: ee.tlpayment_comment,
+                  tlpayment_detail_id: ee.tlpayment_detail_id,
+                  tlpayment_type_id: ee.tlpayment_type_id,
+                  tlpayment_type: ee.tlpayment_type,
+                  tlpayment_type_detail_id: ee.tlpayment_type_detail_id,
+                  tlpayment_type_detail: ee.tlpayment_type_detail,
+                  paid_go: ee.paid_go,
+                  tlpayment_detail_site_id: ee.tlpayment_detail_site_id,
+                  tlpayment_detail_actual_paid: ee.tlpayment_detail_actual_paid,
+                  tlpayment_detail_diff_paid: ee.tlpayment_detail_diff_paid,
+                  tlpayment_detail_comment: ee.tlpayment_detail_comment,
+                  ischeck: ee.ischeck,
+                  tldeposit_id: ee.tldeposit_id,
+                  tldeposit_detail_id: ee.tldeposit_detail_id,
+                  tldeposit_create_by: ee.tldeposit_create_by,
+                  tldeposit_create_by_fullname:
+                      await employeeFullName(ee.tldeposit_create_by),
+                  tldeposit_create_date: ee.tldeposit_create_date);
 
-        groupName = groupPaymentDeposit(lPaymentDetailDeposit);
+          lPaymentMDAndDepositMDAndFullName.add(newPaymentDD);
+        }
+        groupName = groupPaymentDeposit(lPaymentMDAndDepositMDAndFullName);
       }
     });
   }
 
   Future loadDepositDetailByDepositId(String depositId) async {
-    lPaymentDetailDeposit = [];
+    lPaymentMDAndDepositMDAndFullName = [];
     FormData formData =
         FormData.fromMap({"token": TlConstant.token, "deposit_id": depositId});
     String api = '${TlConstant.syncApi}tlPaymentDetail.php?id=depositid';
+    await Dio().post(api, data: formData).then((value) async {
+      if (value.data == null) {
+        print('NoData');
+      } else {
+        for (var pdd in value.data) {
+          PaymentMDAndDepositMDModel ee =
+              PaymentMDAndDepositMDModel.fromMap(pdd);
+          PaymentMDAndDepositMDAndFullNameModel newPaymentDD =
+              PaymentMDAndDepositMDAndFullNameModel(
+                  emp_fullname: await employeeFullName(ee.tlpayment_rec_by),
+                  tlpayment_id: ee.tlpayment_id,
+                  tlpayment_imed_total: ee.tlpayment_imed_total,
+                  tlpayment_actual_total: ee.tlpayment_actual_total,
+                  tlpayment_diff_abs: ee.tlpayment_diff_abs,
+                  tlpayment_rec_date: ee.tlpayment_rec_date,
+                  tlpayment_rec_time_from: ee.tlpayment_rec_time_from,
+                  tlpayment_rec_time_to: ee.tlpayment_rec_time_to,
+                  tlpayment_rec_site: ee.tlpayment_rec_site,
+                  tlpayment_rec_by: ee.tlpayment_rec_by,
+                  tlpayment_create_date: ee.tlpayment_create_date,
+                  tlpayment_create_time: ee.tlpayment_create_time,
+                  tlpayment_modify_date: ee.tlpayment_modify_date,
+                  tlpayment_modify_time: ee.tlpayment_modify_time,
+                  tlpayment_status: ee.tlpayment_status,
+                  tlpayment_merge_id: ee.tlpayment_merge_id,
+                  tlpayment_comment: ee.tlpayment_comment,
+                  tlpayment_detail_id: ee.tlpayment_detail_id,
+                  tlpayment_type_id: ee.tlpayment_type_id,
+                  tlpayment_type: ee.tlpayment_type,
+                  tlpayment_type_detail_id: ee.tlpayment_type_detail_id,
+                  tlpayment_type_detail: ee.tlpayment_type_detail,
+                  paid_go: ee.paid_go,
+                  tlpayment_detail_site_id: ee.tlpayment_detail_site_id,
+                  tlpayment_detail_actual_paid: ee.tlpayment_detail_actual_paid,
+                  tlpayment_detail_diff_paid: ee.tlpayment_detail_diff_paid,
+                  tlpayment_detail_comment: ee.tlpayment_detail_comment,
+                  ischeck: ee.ischeck,
+                  tldeposit_id: ee.tldeposit_id,
+                  tldeposit_detail_id: ee.tldeposit_detail_id,
+                  tldeposit_create_by: ee.tldeposit_create_by,
+                  tldeposit_create_by_fullname:
+                      await employeeFullName(ee.tldeposit_create_by),
+                  tldeposit_create_date: ee.tldeposit_create_date);
+
+          lPaymentMDAndDepositMDAndFullName.add(newPaymentDD);
+        }
+        groupName = groupPaymentDeposit(lPaymentMDAndDepositMDAndFullName);
+      }
+    });
+  }
+
+  Future<String> employeeFullName(String emp_id) async {
+    lEmployeeDeposit = [];
+    String emp_fullname = '';
+    FormData formData = FormData.fromMap({
+      "token": TlConstant.token,
+      "employee_id": emp_id,
+    });
+    String api = '${TlConstant.syncApi}employee.php?id=imedfullname';
+
+    await Dio().post(api, data: formData).then((value) {
+      if (value.data == null) {
+        emp_fullname = 'NoData';
+      } else {
+        for (var emp in value.data) {
+          EmployeeModel newEmp = EmployeeModel.fromMap(emp);
+          lEmployeeDeposit.add(newEmp);
+        }
+        emp_fullname = lEmployeeDeposit.first.emp_fullname;
+      }
+    });
+
+    return emp_fullname;
+  }
+
+  loadBank(String site_id) async {
+    lBank = [];
+    lBankNumber = [];
+    bankNumber = '';
+    FormData formData = FormData.fromMap({
+      "token": TlConstant.token,
+      "siteid": site_id,
+    });
+    String api = '${TlConstant.syncApi}tlPaymentBank.php?id=siteid';
 
     await Dio().post(api, data: formData).then((value) {
       if (value.data == null) {
         print('NoData');
       } else {
-        for (var pdd in value.data) {
-          PaymentDetailDepositModel newPaymentDD =
-              PaymentDetailDepositModel.fromMap(pdd);
-          lPaymentDetailDeposit.add(newPaymentDD);
+        for (var b in value.data) {
+          BankModel newBank = BankModel.fromMap(b);
+          lBankNumber.add(newBank.tlpayment_bank_number);
+          lBank.add(newBank);
         }
 
-        groupName = groupPaymentDeposit(lPaymentDetailDeposit);
+        bankNumber = lBankNumber.first;
+        print(bankNumber);
       }
     });
   }
@@ -1270,14 +1314,19 @@ class _DepositScreenState extends State<DepositScreen> {
     String status = 'success';
     dTotalBalance = double.parse(depositActualController.text) - dTotalDeposit;
 
+    String bankCode = lBank
+        .where((element) => element.tlpayment_bank_number == bankNumber)
+        .first
+        .tlpayment_bank_code;
+
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
       "tldeposit_id": depositId,
       "site_id": siteRec,
       "tldeposit_create_date": dateNow,
       "tldeposit_create_time": timeNow,
-      "tldeposit_bank": depositBankAccountController.text,
-      "tldeposit_bank_account": depositBankAccountController.text,
+      "tldeposit_bank": bankCode,
+      "tldeposit_bank_account": bankNumber,
       "tldeposit_date": depositDate,
       "tldeposit_total": dTotalDeposit.toStringAsFixed(2),
       "tldeposit_total_actual": depositActualController.text,
@@ -1297,24 +1346,26 @@ class _DepositScreenState extends State<DepositScreen> {
   //! DepositDetail
   Future createDepositDetail() async {
     var depositDetailId = '${TlConstant.runID()}${TlConstant.random()}';
-    for (var i = 0; i < lPaymentDetailDeposit.length; i++) {
-      if (lPaymentDetailDeposit[i].ischeck == 'active' &&
-          lPaymentDetailDeposit[i].tldeposit_detail_id.isEmpty) {
+    for (var i = 0; i < lPaymentMDAndDepositMDAndFullName.length; i++) {
+      if (lPaymentMDAndDepositMDAndFullName[i].ischeck == 'active' &&
+          lPaymentMDAndDepositMDAndFullName[i].tldeposit_detail_id.isEmpty) {
         FormData formData = FormData.fromMap({
           "token": TlConstant.token,
           "tldeposit_detail_id":
               '${depositDetailId}${i.toString().padLeft(3, '0')}',
           "tldeposit_id": depositId,
-          "tlpayment_id": lPaymentDetailDeposit[i].tlpayment_id,
-          "tlpayment_detail_id": lPaymentDetailDeposit[i].tlpayment_detail_id,
-          "tlpayment_type_id": lPaymentDetailDeposit[i].tlpayment_type_id,
-          "tlpayment_type": lPaymentDetailDeposit[i].tlpayment_type,
+          "tlpayment_id": lPaymentMDAndDepositMDAndFullName[i].tlpayment_id,
+          "tlpayment_detail_id":
+              lPaymentMDAndDepositMDAndFullName[i].tlpayment_detail_id,
+          "tlpayment_type_id":
+              lPaymentMDAndDepositMDAndFullName[i].tlpayment_type_id,
+          "tlpayment_type": lPaymentMDAndDepositMDAndFullName[i].tlpayment_type,
           "tlpayment_type_detail_id":
-              lPaymentDetailDeposit[i].tlpayment_type_detail_id,
+              lPaymentMDAndDepositMDAndFullName[i].tlpayment_type_detail_id,
           "tlpayment_type_detail":
-              lPaymentDetailDeposit[i].tlpayment_type_detail,
+              lPaymentMDAndDepositMDAndFullName[i].tlpayment_type_detail,
           "tlpayment_detail_actual_paid":
-              lPaymentDetailDeposit[i].tlpayment_detail_actual_paid,
+              lPaymentMDAndDepositMDAndFullName[i].tlpayment_detail_actual_paid,
         });
         String api = '${TlConstant.syncApi}tlDepositDetail.php?id=create';
 
@@ -1361,11 +1412,48 @@ class _DepositScreenState extends State<DepositScreen> {
     }
   }
 
-  groupPaymentDeposit(List<PaymentDetailDepositModel> lPaymentDetailDeposit) {
-    return groupBy(lPaymentDetailDeposit, (gKey) {
+  groupPaymentDeposit(
+      List<PaymentMDAndDepositMDAndFullNameModel>
+          lPaymentMDAndDepositMDAndFullName) {
+    return groupBy(lPaymentMDAndDepositMDAndFullName, (gKey) {
       var nameAndDate = '${gKey.emp_fullname}  [ ${gKey.tlpayment_rec_date} ]';
       return nameAndDate;
     });
     //=> gKey.emp_fullname);
+  }
+
+  _buildDropdownBank(String bankValue) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return DropdownButton<String>(
+          isExpanded: true,
+          value: bankValue,
+          icon:
+              const Icon(Icons.arrow_drop_down_rounded, color: Colors.blueGrey),
+          elevation: 16,
+          style: const TextStyle(color: Colors.blueGrey),
+          underline: Container(
+            height: 2,
+            color: Colors.blueGrey,
+          ),
+          onChanged: (String? value) {
+            // This is called when the user selects an item.
+            setState(() {
+              bankValue = value!;
+              print(bankValue);
+            });
+          },
+          items: lBankNumber.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(value),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
   }
 }

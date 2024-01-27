@@ -25,24 +25,22 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   String isHoverIcon = '0';
   bool isMenuApprover = false;
   bool isMenuAdmin = false;
-  String labelMainMenu = 'รายงานปิดเวร ประจำวัน';
+  String labelMainMenu = 'รายงานปิดผลัด ประจำวัน';
   String isSwitchMenu = '0'; //()
 
   String status = 'request';
   bool isReady = true; // false;
 
   List<EmployeeModel> lEmpPeeOill = [];
+  String position = '';
 
-  List<PaymentApprovalModel> lPaymentApproval = [];
+  //List<PaymentApprovalModel> lPaymentApproval = [];
   String empId = 'wijittra';
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    Future.delayed(Duration(milliseconds: 500), () async {
-      await loadPaymentApproval();
-    });
   }
 
   @override
@@ -57,7 +55,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     //     fix_employee_type_id: '4');
 
     // lEmpPeeOill.add(PeeOill);
-
+    position = widget.lEmp.first.employee_position;
+    print(widget.lEmp.first);
     print('Width : ${MediaQuery.of(context).size.width}');
     print('Height : ${MediaQuery.of(context).size.height}');
     return Material(
@@ -121,123 +120,117 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    Tooltip(
-                                      message: 'รายงานปิดเวร ประจำวัน',
-                                      child: IconButton(
-                                        icon: Icon(
-                                          Icons.currency_exchange_rounded,
-                                          color: isSwitchMenu == '0'
-                                              ? Colors.green[900]
-                                              : Colors.green,
-                                        ),
-                                        onPressed: () {
-                                          isSwitchMenu = '0';
-                                          labelMainMenu =
-                                              'รายงานปิดเวร ประจำวัน';
-                                          setState(() {});
-                                        },
-                                      ),
-                                    ),
                                     SizedBox(
-                                        child: Tooltip(
-                                      message: 'ตรวจสอบการปิดเวร',
-                                      child: IconButton(
-                                        icon: badges.Badge(
-                                          badgeContent: Text(
-                                            '${lPaymentApproval.length}',
-                                            style: const TextStyle(
-                                                color: Colors.white),
-                                          ),
-                                          showBadge:
-                                              lPaymentApproval.isNotEmpty,
-                                          badgeAnimation: const badges
-                                              .BadgeAnimation.scale(),
-                                          child: Icon(
-                                            Icons.price_check_outlined,
-                                            color: isSwitchMenu == '1'
+                                      child: Tooltip(
+                                        message: 'รายงานปิดผลัด ประจำวัน',
+                                        child: IconButton(
+                                          icon: Icon(
+                                            Icons.currency_exchange_rounded,
+                                            color: isSwitchMenu == '0'
                                                 ? Colors.green[900]
                                                 : Colors.green,
                                           ),
+                                          onPressed: () {
+                                            isSwitchMenu = '0';
+                                            labelMainMenu =
+                                                'รายงานปิดผลัด ประจำวัน';
+                                            setState(() {});
+                                          },
                                         ),
-                                        onPressed: () {
-                                          isSwitchMenu = '1';
-                                          labelMainMenu = 'ตรวจสอบการปิดเวร';
-                                          setState(() {});
-                                        },
                                       ),
-                                    )),
+                                    ),
                                     SizedBox(
-                                        child: Tooltip(
-                                      message: 'นำฝาก',
-                                      child: IconButton(
-                                        icon: Icon(
-                                          Icons.savings_rounded,
-                                          color: isSwitchMenu == '2'
-                                              ? Colors.green[900]
-                                              : Colors.green,
-                                        ),
-                                        onPressed: () {
-                                          isSwitchMenu = '2';
-                                          labelMainMenu = 'นำฝาก';
-                                          setState(() {});
-                                        },
-                                      ),
-                                    )),
+                                        child: position == 'ผู้จัดการ' ||
+                                                position == 'รองผู้จัดการ' ||
+                                                position == 'หัวหน้าหน่วย'
+                                            ? //||position == 'เจ้าหน้าที่ไอที'?
 
+                                            Tooltip(
+                                                message: 'ตรวจสอบการปิดผลัด',
+                                                child: IconButton(
+                                                  icon: Icon(
+                                                    Icons.price_check_outlined,
+                                                    color: isSwitchMenu == '1'
+                                                        ? Colors.green[900]
+                                                        : Colors.green,
+                                                  ),
+                                                  onPressed: () {
+                                                    isSwitchMenu = '1';
+                                                    labelMainMenu =
+                                                        'ตรวจสอบการปิดผลัด';
+                                                    setState(() {});
+                                                  },
+                                                ),
+                                              )
+                                            : null),
                                     SizedBox(
-                                        child: Tooltip(
-                                      message: 'ตรวจสอบเงินนำฝาก',
-                                      child: IconButton(
-                                        icon: Icon(
-                                          Icons.account_balance_rounded,
-                                          color: isSwitchMenu == '3'
-                                              ? Colors.green[900]
-                                              : Colors.green,
-                                        ),
-                                        onPressed: () {
-                                          isSwitchMenu = '3';
-                                          labelMainMenu = 'ตรวจสอบเงินนำฝาก';
-                                          setState(() {});
-                                        },
-                                      ),
-                                    )),
+                                        child: position == 'ผู้จัดการ' ||
+                                                position == 'รองผู้จัดการ' ||
+                                                position == 'หัวหน้าหน่วย'
+                                            ? Tooltip(
+                                                message: 'นำฝาก',
+                                                child: IconButton(
+                                                  icon: Icon(
+                                                    Icons.savings_rounded,
+                                                    color: isSwitchMenu == '2'
+                                                        ? Colors.green[900]
+                                                        : Colors.green,
+                                                  ),
+                                                  onPressed: () {
+                                                    isSwitchMenu = '2';
+                                                    labelMainMenu = 'นำฝาก';
+                                                    setState(() {});
+                                                  },
+                                                ),
+                                              )
+                                            : null),
                                     SizedBox(
-                                        child: Tooltip(
-                                      message: 'ตรวจสอบรายงาน ณ สิ้นวัน',
-                                      child: IconButton(
-                                        icon: Icon(
-                                          Icons.currency_bitcoin_rounded,
-                                          color: isSwitchMenu == '4'
-                                              ? Colors.green[900]
-                                              : Colors.green,
-                                        ),
-                                        onPressed: () {
-                                          isSwitchMenu = '4';
-                                          labelMainMenu =
-                                              'ตรวจสอบรายงาน ณ สิ้นวัน';
-                                          setState(() {});
-                                        },
-                                      ),
-                                    )),
-                                    // SizedBox(
-                                    //   child: Tooltip(
-                                    //           message: 'Admin',
-                                    //           child: IconButton(
-                                    //             icon: Icon(
-                                    //                 Icons
-                                    //                     .workspace_premium_sharp,
-                                    //                 color: isSwitchMenu == '2'
-                                    //                    ? Colors.green[900]
-                                    //           : Colors.green,
-                                    //                       ),
-                                    //             onPressed: () {
-                                    //               isSwitchMenu = '2';
-                                    //               labelMainMenu = 'Admin';
-                                    //               setState(() {});
-                                    //             },
-                                    //           ),
-                                    //         )
-                                    // ),
+                                        child: position == 'ผู้จัดการ' ||
+                                                position == 'รองผู้จัดการ' ||
+                                                position == 'หัวหน้าหน่วย'
+                                            ? Tooltip(
+                                                message: 'ตรวจสอบเงินนำฝาก',
+                                                child: IconButton(
+                                                  icon: Icon(
+                                                    Icons
+                                                        .account_balance_rounded,
+                                                    color: isSwitchMenu == '3'
+                                                        ? Colors.green[900]
+                                                        : Colors.green,
+                                                  ),
+                                                  onPressed: () {
+                                                    isSwitchMenu = '3';
+                                                    labelMainMenu =
+                                                        'ตรวจสอบเงินนำฝาก';
+                                                    setState(() {});
+                                                  },
+                                                ),
+                                              )
+                                            : null),
+                                    SizedBox(
+                                        child: position == 'ผู้จัดการ' ||
+                                                position == 'รองผู้จัดการ' ||
+                                                position == 'หัวหน้าหน่วย'
+                                            ? Tooltip(
+                                                message:
+                                                    'ตรวจสอบรายงาน ณ สิ้นวัน',
+                                                child: IconButton(
+                                                  icon: Icon(
+                                                    Icons
+                                                        .currency_bitcoin_rounded,
+                                                    color: isSwitchMenu == '4'
+                                                        ? Colors.green[900]
+                                                        : Colors.green,
+                                                  ),
+                                                  onPressed: () {
+                                                    isSwitchMenu = '4';
+                                                    labelMainMenu =
+                                                        'ตรวจสอบรายงาน ณ สิ้นวัน';
+                                                    setState(() {});
+                                                  },
+                                                ),
+                                              )
+                                            : null),
                                   ],
                                 ),
                               )
@@ -258,12 +251,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                 )
                               : isSwitchMenu == '1'
                                   ? CheckPaymentScreen(
-                                      lPaymentApproval: lPaymentApproval,
                                       lEmp: widget.lEmp, // lEmpPeeOill,
 
-                                      callbackUpdate: () {
-                                        loadPaymentApproval();
-                                      },
+                                      callbackUpdate: () {},
                                     )
                                   : isSwitchMenu == '2'
                                       ? DepositScreen(
@@ -275,8 +265,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                             )
                                           : isSwitchMenu == '4'
                                               ? CheckPaymentScreen(
-                                                  lPaymentApproval:
-                                                      lPaymentApproval,
                                                   lEmp: widget
                                                       .lEmp, // lEmpPeeOill,
                                                   callbackUpdate: () {},
@@ -314,26 +302,5 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
         ),
       ),
     );
-  }
-
-  loadPaymentApproval() async {
-    lPaymentApproval = [];
-    FormData formData = FormData.fromMap({
-      "token": TlConstant.token,
-      "emp_id": widget.lEmp.first.employee_id //lEmpPeeOill.first.employee_id
-    }); //widget.lEmp.first.employee_id});
-    String api = '${TlConstant.syncApi}tlPaymentApproval.php?id=emp';
-    await Dio().post(api, data: formData).then((value) {
-      if (value.data == null) {
-        print('PaymentDetailRemark Null !');
-      } else {
-        for (var pdRemark in value.data) {
-          PaymentApprovalModel newPDRemark =
-              PaymentApprovalModel.fromMap(pdRemark);
-          lPaymentApproval.add(newPDRemark);
-        }
-      }
-    });
-    setState(() {});
   }
 }

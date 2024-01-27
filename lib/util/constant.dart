@@ -2,12 +2,11 @@ import 'dart:math';
 
 class TlConstant {
   //workstepupdate
-  //static const String syncApi = 'https://eSmartCashier.thonglorpet.com/apiTLSmartCashier/';
   //static const String syncApi = 'http://localhost:80/apiTLSmartCashier/';
   static const String syncApi =
       'https://e-cashier.thonglorpet.com/apiTLSmartCashier/';
 
-  static final String version = 'TL670103V003';
+  static final String version = 'TL670125V006';
   static final String token = 'epyTtnemyaPegnahCipa';
 
   //r แก้ connect.php เป็น .5

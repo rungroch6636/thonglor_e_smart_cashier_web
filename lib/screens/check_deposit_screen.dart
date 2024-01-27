@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:thonglor_e_smart_cashier_web/models/depositImageTemp_model.dart';
-import 'package:thonglor_e_smart_cashier_web/models/paymentDetailDeposit_model.dart';
+import 'package:thonglor_e_smart_cashier_web/models/paymentMDAndDepositMDAndFullName_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/paymentDetail_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/payment_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/receipt_model.dart';
@@ -18,6 +18,7 @@ import 'package:thonglor_e_smart_cashier_web/util/constant.dart';
 import 'package:collection/collection.dart';
 
 import '../models/employee_model.dart';
+import '../models/paymentMDAndDepositMD_model.dart';
 
 class CheckDepositScreen extends StatefulWidget {
   List<EmployeeModel> lEmp;
@@ -70,7 +71,10 @@ class _CheckDepositScreenState extends State<CheckDepositScreen> {
   List<PaymentDetailModel> lPaymentDetail = [];
   List<PaymentModel> lPayment = [];
 
-  List<PaymentDetailDepositModel> lPaymentDetailDeposit = [];
+   List<PaymentMDAndDepositMDModel> lPaymentMDAndDepositMD = [];
+  List<PaymentMDAndDepositMDAndFullNameModel>
+      lPaymentMDAndDepositMDAndFullName = [];
+  List<EmployeeModel> lEmployeeDeposit = [];
 
   TextEditingController depositCommentController = TextEditingController();
   var groupName;
@@ -143,7 +147,7 @@ class _CheckDepositScreenState extends State<CheckDepositScreen> {
                                                               const EdgeInsets
                                                                   .only(
                                                                   bottom: 24),
-                                                          child: lPaymentDetailDeposit
+                                                          child: lPaymentMDAndDepositMDAndFullName
                                                                   .isEmpty
                                                               ? const SizedBox(
                                                                   height: 40,
@@ -166,7 +170,7 @@ class _CheckDepositScreenState extends State<CheckDepositScreen> {
                                                                             String
                                                                                 fullName =
                                                                                 groupName.keys.elementAt(index);
-                                                                            List<PaymentDetailDepositModel>
+                                                                            List<PaymentMDAndDepositMDAndFullNameModel>
                                                                                 data =
                                                                                 groupName.values.elementAt(index);
                                                                             return Column(
@@ -188,7 +192,7 @@ class _CheckDepositScreenState extends State<CheckDepositScreen> {
                                                                                     physics: const ClampingScrollPhysics(),
                                                                                     itemCount: data.length,
                                                                                     itemBuilder: (context, index) {
-                                                                                      PaymentDetailDepositModel mPayment = data[index];
+                                                                                      PaymentMDAndDepositMDAndFullNameModel mPayment = data[index];
                                                                                       return Row(
                                                                                         children: [
                                                                                           SizedBox(
@@ -653,7 +657,7 @@ class _CheckDepositScreenState extends State<CheckDepositScreen> {
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
     });
-    String api = '${TlConstant.syncApi}baseSiteBranch.php';
+    String api = '${TlConstant.syncApi}baseSiteBranch.php?id=imed';
     lSite = [];
     await Dio().post(api, data: formData).then((value) {
       if (value.data == null) {
@@ -695,7 +699,7 @@ class _CheckDepositScreenState extends State<CheckDepositScreen> {
 
   Future loadPaymentDetailDeposit(
       String siteDDValue, String dateFrom, String dateTo) async {
-    lPaymentDetailDeposit = [];
+    lPaymentMDAndDepositMDAndFullName = [];
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
       "site_id": siteDDValue,
@@ -709,15 +713,17 @@ class _CheckDepositScreenState extends State<CheckDepositScreen> {
         print('NoData');
       } else {
         for (var pdd in value.data) {
-          PaymentDetailDepositModel newPaymentDD =
-              PaymentDetailDepositModel.fromMap(pdd);
-          lPaymentDetailDeposit.add(newPaymentDD);
+          PaymentMDAndDepositMDAndFullNameModel newPaymentDD =
+              PaymentMDAndDepositMDAndFullNameModel.fromMap(pdd);
+          lPaymentMDAndDepositMDAndFullName.add(newPaymentDD);
         }
 
-        groupName = groupPaymentDeposit(lPaymentDetailDeposit);
+        groupName = groupPaymentDeposit(lPaymentMDAndDepositMDAndFullName);
       }
     });
   }
+
+  
 
   //! Deposit
   Future createDeposit() async {
@@ -790,8 +796,8 @@ class _CheckDepositScreenState extends State<CheckDepositScreen> {
     }
   }
 
-  groupPaymentDeposit(List<PaymentDetailDepositModel> lPaymentDetailDeposit) {
-    return groupBy(lPaymentDetailDeposit, (gKey) {
+  groupPaymentDeposit(List<PaymentMDAndDepositMDAndFullNameModel> lPaymentMDAndDepositMDAndFullName) {
+    return groupBy(lPaymentMDAndDepositMDAndFullName, (gKey) {
       var nameAndDate = '${gKey.emp_fullname}  [ ${gKey.tlpayment_rec_date} ]';
       return nameAndDate;
     });

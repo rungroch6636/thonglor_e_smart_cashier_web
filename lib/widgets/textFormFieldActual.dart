@@ -56,12 +56,13 @@ class _TextFormFieldActualState extends State<TextFormFieldActual> {
           ? Colors.grey[300]
           : Colors.transparent,
       child: TextFormField(
+        style: TextStyle(fontSize: 14),
         readOnly: widget.isStatusScreen == 'waiting' ||
                 widget.isStatusScreen == 'confirm'
             ? true
             : false, // 'New'  'create' 'reject'
         decoration: const InputDecoration(
-          contentPadding: EdgeInsets.only(bottom: 8),
+          contentPadding: EdgeInsets.only(bottom: 15),
         ),
         textAlign: TextAlign.end,
         controller: tActualController,

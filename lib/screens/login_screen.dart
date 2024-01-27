@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:html';
 
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
@@ -37,7 +38,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     print('Width : ${MediaQuery.of(context).size.width}');
     print('Height : ${MediaQuery.of(context).size.height}');
-
     return Material(
       child: Container(
           color: Colors.grey[100],
@@ -207,7 +207,8 @@ class _LoginScreenState extends State<LoginScreen> {
       "password": passwordConvert,
     });
     await Dio()
-        .post("${TlConstant.syncApi}employee.php?id=profile", data: formData)
+        .post("${TlConstant.syncApi}employee.php?id=imedprofile",
+            data: formData)
         .then((value) {
       if (value.data == null) {
         setState(() {
