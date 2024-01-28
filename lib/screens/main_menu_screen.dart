@@ -183,9 +183,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                               )
                                             : null),
                                     SizedBox(
-                                        child: position == 'ผู้จัดการ' ||
-                                                position == 'รองผู้จัดการ' ||
-                                                position == 'หัวหน้าหน่วย'
+                                        child: 
+                                        position == 'FIN' 
                                             ? Tooltip(
                                                 message: 'ตรวจสอบเงินนำฝาก',
                                                 child: IconButton(
@@ -206,9 +205,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                               )
                                             : null),
                                     SizedBox(
-                                        child: position == 'ผู้จัดการ' ||
-                                                position == 'รองผู้จัดการ' ||
-                                                position == 'หัวหน้าหน่วย'
+                                        child: position == 'ACC'
                                             ? Tooltip(
                                                 message:
                                                     'ตรวจสอบรายงาน ณ สิ้นวัน',

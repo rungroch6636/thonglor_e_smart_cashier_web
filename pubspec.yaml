@@ -45,10 +45,6 @@ dependencies:
   syncfusion_flutter_datepicker: ^24.1.45
 
 
-
-
-      
-
 dev_dependencies:
   flutter_lints: ^2.0.0
   flutter_test:

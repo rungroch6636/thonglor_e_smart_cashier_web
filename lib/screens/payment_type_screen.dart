@@ -646,7 +646,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                 Colors.grey,
                                                           ),
                                                     child: const Text(
-                                                        ' Add Payment Type '),
+                                                        ' เพิ่มประเภทการรับเงิน '),
                                                     onPressed: () {
                                                       if (isStatusScreen ==
                                                               'New' ||
@@ -1493,7 +1493,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                                   paymentControllers.clear();
 
                                                                                   isSend = false;
-                                                                                  isStatusScreen = 'New';
+                                                                                  isStatusScreen = 'confirm';
 
                                                                                   setState(() {});
                                                                                 },
@@ -1660,212 +1660,258 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                 showDialog(
                                     context: context,
                                     builder: (context) {
-                                      return Dialog(
-                                          shape: const RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(16.0))),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                                color: Colors.grey[200],
-                                                borderRadius:
-                                                    BorderRadius.circular(16)),
-                                            height: 400,
-                                            width: 500,
-                                            child: Column(
-                                              children: [
-                                                const Center(
-                                                    child: SizedBox(
-                                                        height: 42,
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 60),
+                                        child: Dialog(
+                                            shape: const RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(16.0))),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                  color: Colors.grey[200],
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          16)),
+                                              // height: 400,
+                                              width: 600,
+                                              child: Column(
+                                                children: [
+                                                  const Center(
+                                                      child: SizedBox(
+                                                          height: 42,
+                                                          child: Padding(
+                                                            padding:
+                                                                EdgeInsets.all(
+                                                                    8.0),
+                                                            child: Column(
+                                                              children: [
+                                                                Text(
+                                                                  'เอกสารปิดผลัด ที่บันทึกไว้',
+                                                                  style: TextStyle(
+                                                                      fontSize:
+                                                                          16),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ))),
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      child: Container(
+                                                        decoration: BoxDecoration(
+                                                            color: Colors
+                                                                .grey[400],
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        8)),
                                                         child: Padding(
                                                           padding:
-                                                              EdgeInsets.all(
-                                                                  8.0),
-                                                          child: Column(
-                                                            children: [
-                                                              Text(
-                                                                'บันทึก การปิดผลัด',
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        16),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ))),
-                                                Expanded(
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: Container(
-                                                      decoration: BoxDecoration(
-                                                          color:
-                                                              Colors.grey[400],
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(8)),
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(4.0),
-                                                        child: ListView.builder(
-                                                          itemCount:
-                                                              lPaymentChoice
-                                                                  .length,
-                                                          itemBuilder:
-                                                              (context, index) {
-                                                            return Card(
-                                                              child: InkWell(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            4),
-                                                                onTap:
-                                                                    () async {
-                                                                  paymentId = lPaymentChoice[
-                                                                          index]
-                                                                      .tlpayment_id;
-                                                                  isStatusScreen =
-                                                                      lPaymentChoice[
-                                                                              index]
-                                                                          .tlpayment_status;
-                                                                  //! loadPaymentMaster
-                                                                  await loadPaymentMaster(
-                                                                      paymentId);
-                                                                  //! loadPaymentDetail
-                                                                  await loadPaymentDetail(
-                                                                      paymentId);
-                                                                  //! loadPaymentDetail.Image
-                                                                  await loadPaymentDetailImage(
-                                                                      paymentId);
-                                                                  //! loadPaymentDetail.Remark
-                                                                  await loadPaymentDetailRemark(
-                                                                      paymentId);
-                                                                  Navigator.pop(
-                                                                      context);
-                                                                  runProcess =
-                                                                      'loadData';
+                                                              const EdgeInsets
+                                                                  .all(4.0),
+                                                          child:
+                                                              ListView.builder(
+                                                            itemCount:
+                                                                lPaymentChoice
+                                                                    .length,
+                                                            itemBuilder:
+                                                                (context,
+                                                                    index) {
+                                                              return Card(
+                                                                child: InkWell(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              4),
+                                                                  onTap:
+                                                                      () async {
+                                                                    paymentId =
+                                                                        lPaymentChoice[index]
+                                                                            .tlpayment_id;
+                                                                    isStatusScreen =
+                                                                        lPaymentChoice[index]
+                                                                            .tlpayment_status;
+                                                                    //! loadPaymentMaster
+                                                                    await loadPaymentMaster(
+                                                                        paymentId);
+                                                                    //! loadPaymentDetail
+                                                                    await loadPaymentDetail(
+                                                                        paymentId);
+                                                                    //! loadPaymentDetail.Image
+                                                                    await loadPaymentDetailImage(
+                                                                        paymentId);
+                                                                    //! loadPaymentDetail.Remark
+                                                                    await loadPaymentDetailRemark(
+                                                                        paymentId);
+                                                                    Navigator.pop(
+                                                                        context);
+                                                                    runProcess =
+                                                                        'loadData';
 
-                                                                  if (isStatusScreen ==
-                                                                          'create' ||
-                                                                      isStatusScreen ==
-                                                                          'reject') {
-                                                                    isSend =
-                                                                        true;
-                                                                  }
+                                                                    if (isStatusScreen ==
+                                                                            'create' ||
+                                                                        isStatusScreen ==
+                                                                            'reject') {
+                                                                      isSend =
+                                                                          true;
+                                                                    }
 
-                                                                  setState(
-                                                                      () {});
-                                                                },
-                                                                onHover:
-                                                                    (select) {
-                                                                  // setState;
-                                                                },
-                                                                hoverColor:
-                                                                    Colors.green[
-                                                                        50],
-                                                                child: Padding(
-                                                                  padding: const EdgeInsets
-                                                                      .symmetric(
-                                                                      horizontal:
-                                                                          8),
-                                                                  child: Column(
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    children: [
-                                                                      Text(
-                                                                          style:
-                                                                              TextStyle(fontSize: 16),
-                                                                          'สาขา : ${lPaymentChoice[index].tlpayment_rec_site} วันที่ : ${lPaymentChoice[index].tlpayment_rec_date} [ ${lPaymentChoice[index].tlpayment_rec_time_from} - ${lPaymentChoice[index].tlpayment_rec_time_to} ]'),
+                                                                    setState(
+                                                                        () {});
+                                                                  },
+                                                                  onHover:
+                                                                      (select) {
+                                                                    // setState;
+                                                                  },
+                                                                  hoverColor:
+                                                                      Colors.green[
+                                                                          50],
+                                                                  child:
                                                                       Padding(
-                                                                        padding: const EdgeInsets
-                                                                            .symmetric(
-                                                                            vertical:
-                                                                                4.0),
-                                                                        child: Text(
+                                                                    padding: const EdgeInsets
+                                                                        .symmetric(
+                                                                        horizontal:
+                                                                            8),
+                                                                    child:
+                                                                        Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children: [
+                                                                        Text(
                                                                             style:
-                                                                                const TextStyle(fontSize: 14),
-                                                                            'Paid : ${lPaymentChoice[index].tlpayment_imed_total}, Actual : ${lPaymentChoice[index].tlpayment_actual_total}, Balance : ${lPaymentChoice[index].tlpayment_diff_abs}'),
-                                                                      ),
-                                                                      Padding(
-                                                                        padding: const EdgeInsets
-                                                                            .symmetric(
-                                                                            vertical:
-                                                                                4.0),
-                                                                        child:
-                                                                            Row(
-                                                                          mainAxisAlignment:
-                                                                              MainAxisAlignment.spaceBetween,
-                                                                          children: [
-                                                                            Text(
-                                                                              lPaymentChoice[index].tlpayment_status,
-                                                                              style: const TextStyle(color: Colors.blue),
-                                                                            ),
-                                                                            Text(
-                                                                                style: const TextStyle(fontSize: 14),
-                                                                                'วันที่สร้าง : ${lPaymentChoice[index].tlpayment_create_date} ${lPaymentChoice[index].tlpayment_create_time}'),
-                                                                          ],
+                                                                                TextStyle(fontSize: 16),
+                                                                            'สาขา : ${lPaymentChoice[index].tlpayment_rec_site} วันที่ : ${lPaymentChoice[index].tlpayment_rec_date} [ ${lPaymentChoice[index].tlpayment_rec_time_from} - ${lPaymentChoice[index].tlpayment_rec_time_to} ]'),
+                                                                        Padding(
+                                                                          padding: const EdgeInsets
+                                                                              .symmetric(
+                                                                              vertical: 4.0),
+                                                                          child: Text(
+                                                                              style: const TextStyle(fontSize: 14),
+                                                                              'Paid : ${lPaymentChoice[index].tlpayment_imed_total}, Actual : ${lPaymentChoice[index].tlpayment_actual_total}, Balance : ${lPaymentChoice[index].tlpayment_diff_abs}'),
                                                                         ),
-                                                                      ),
-                                                                    ],
+                                                                        Padding(
+                                                                          padding: const EdgeInsets
+                                                                              .symmetric(
+                                                                              vertical: 4.0),
+                                                                          child:
+                                                                              Row(
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.spaceBetween,
+                                                                            children: [
+                                                                              SizedBox(
+                                                                                  child: lPaymentChoice[index].tlpayment_status == 'create'
+                                                                                      ? Chip(
+                                                                                          label: const Text(
+                                                                                            'สร้าง',
+                                                                                            style: TextStyle(color: Colors.red),
+                                                                                          ),
+                                                                                          backgroundColor: Colors.red[100],
+                                                                                        )
+                                                                                      : lPaymentChoice[index].tlpayment_status == 'reject'
+                                                                                          ? Chip(
+                                                                                              label: const Text(
+                                                                                                'ส่งกลับมาแก้ไข',
+                                                                                                style: TextStyle(color: Colors.red),
+                                                                                              ),
+                                                                                              backgroundColor: Colors.red[100],
+                                                                                            )
+                                                                                          : lPaymentChoice[index].tlpayment_status == 'waiting'
+                                                                                              ? Chip(
+                                                                                                  label: Text(
+                                                                                                    'รอการอนุมัติ',
+                                                                                                    style: TextStyle(color: Colors.yellow[900]),
+                                                                                                  ),
+                                                                                                  backgroundColor: Colors.yellow[100],
+                                                                                                )
+                                                                                              : lPaymentChoice[index].tlpayment_status == 'confirm'
+                                                                                                  ? Chip(
+                                                                                                      label: Text(
+                                                                                                        'อนุมัติ',
+                                                                                                        style: TextStyle(color: Colors.blue[900]),
+                                                                                                      ),
+                                                                                                      backgroundColor: Colors.blue[100],
+                                                                                                    )
+                                                                                                  : Chip(
+                                                                                                      label: Text('Error'),
+                                                                                                      backgroundColor: Colors.red[100],
+                                                                                                    )),
+                                                                              Text(style: const TextStyle(fontSize: 14), 'วันที่สร้าง : ${lPaymentChoice[index].tlpayment_create_date} ${lPaymentChoice[index].tlpayment_create_time}'),
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
                                                                   ),
                                                                 ),
-                                                              ),
-                                                            );
-                                                          },
+                                                              );
+                                                            },
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: Tooltip(
-                                                    message: 'New Payment',
-                                                    child: IconButton(
-                                                      iconSize: 32,
-                                                      color: Colors.green[900],
-                                                      icon: const Icon(
-                                                        Icons.note_add_rounded,
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Tooltip(
+                                                      message:
+                                                          'สร้างเอกสารปิดผลัด ใบใหม่',
+                                                      child: IconButton(
+                                                        iconSize: 32,
+                                                        color:
+                                                            Colors.green[900],
+                                                        icon: const Icon(
+                                                          Icons
+                                                              .note_add_rounded,
+                                                        ),
+                                                        onPressed: () async {
+                                                          if (isNew == false) {
+                                                            setState(() {
+                                                              lPaymentImage =
+                                                                  [];
+                                                              lPaymentRemark =
+                                                                  [];
+                                                              runProcess =
+                                                                  'loadData';
+                                                              isCheckRun = true;
+                                                              isNew = true;
+                                                              isSend = false;
+                                                              Navigator.pop(
+                                                                  context);
+                                                            });
+
+                                                            await loadPaymentImed(
+                                                                paymentId,
+                                                                widget
+                                                                    .lEmp
+                                                                    .first
+                                                                    .employee_id,
+                                                                siteDDValue,
+                                                                selectedDate,
+                                                                startTime,
+                                                                endTime);
+
+                                                            setState(() {
+                                                              isNew = false;
+                                                              isCheckRun =
+                                                                  false;
+                                                              isStatusScreen =
+                                                                  'New';
+                                                            });
+                                                          }
+                                                        },
                                                       ),
-                                                      onPressed: () async {
-                                                        if (isNew == false) {
-                                                          setState(() {
-                                                            lPaymentImage = [];
-                                                            lPaymentRemark = [];
-                                                            runProcess =
-                                                                'loadData';
-                                                            isCheckRun = true;
-                                                            isNew = true;
-                                                            isSend = false;
-                                                            Navigator.pop(
-                                                                context);
-                                                          });
-
-                                                          await loadPaymentImed(
-                                                              paymentId,
-                                                              widget.lEmp.first
-                                                                  .employee_id,
-                                                              siteDDValue,
-                                                              selectedDate,
-                                                              startTime,
-                                                              endTime);
-
-                                                          setState(() {
-                                                            isNew = false;
-                                                            isCheckRun = false;
-                                                            isStatusScreen =
-                                                                'New';
-                                                          });
-                                                        }
-                                                      },
                                                     ),
-                                                  ),
-                                                )
-                                              ],
-                                            ),
-                                          ));
+                                                  )
+                                                ],
+                                              ),
+                                            )),
+                                      );
                                     });
                               } else {
                                 if (isNew == false) {

@@ -1240,6 +1240,7 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                                                                                   }); //starts success animation
                                                                                   controller.success();
                                                                                   await Future.delayed(const Duration(milliseconds: 1200), () async {
+                                                                                    isSelectCardEmp = 'ALL';
                                                                                     //! load Payment Status Waiting
                                                                                     await loadPaymentMasterCheck(siteDDValue, dateRec);
                                                                                     //!total
@@ -1357,6 +1358,7 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                                                                                   }); //starts success animation
                                                                                   controller.success();
                                                                                   await Future.delayed(const Duration(milliseconds: 1200), () async {
+                                                                                     isSelectCardEmp = 'ALL';
                                                                                     //! load Payment Status Waiting
                                                                                     await loadPaymentMasterCheck(siteDDValue, dateRec);
                                                                                     //!total
@@ -2029,7 +2031,7 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
       "balance": Bal,
       "comment": comment,
     });
-    String api = '${TlConstant.syncApi}tlPaymentDetail.php?id=update';
+    String api = '${TlConstant.syncApi}tlPaymentDetail.php?id=updateByEdit';
     await Dio().post(api, data: formData);
   }
 
