@@ -1,11 +1,14 @@
 // ignore_for_file: use_build_context_synchronously, must_be_immutable
 
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:thonglor_e_smart_cashier_web/models/depositImageTemp_model.dart';
 
 import '../models/depositImage_model.dart';
@@ -18,6 +21,7 @@ class DepositImageScreen extends StatefulWidget {
 
   String depositId;
   Function callbackFunctions;
+  Function callbackChangeComment;
   Function callbackRemove;
 
   DepositImageScreen(
@@ -26,6 +30,7 @@ class DepositImageScreen extends StatefulWidget {
       required this.isStatusScreen,
       required this.depositId,
       required this.callbackFunctions,
+      required this.callbackChangeComment,
       required this.callbackRemove,
       super.key});
 
@@ -154,17 +159,8 @@ class _DepositImageScreenState extends State<DepositImageScreen> {
                                                                           16.0),
                                                                   child:
                                                                       Container(
-                                                                    color: widget.isStatusScreen !=
-                                                                            'New'
-                                                                        ? Colors
-                                                                            .grey
-                                                                        : null,
                                                                     child:
                                                                         TextFormField(
-                                                                      readOnly: widget.isStatusScreen !=
-                                                                              'New'
-                                                                          ? true
-                                                                          : false,
                                                                       autofocus:
                                                                           true,
                                                                       decoration:
@@ -179,6 +175,11 @@ class _DepositImageScreenState extends State<DepositImageScreen> {
                                                                             .tldeposit_image_description = lImageControllers[
                                                                                 index]
                                                                             .text;
+                                                                        if (widget.isStatusScreen !=
+                                                                            'New') {
+                                                                          widget
+                                                                              .callbackRemove(true);
+                                                                        }
                                                                       },
                                                                     ),
                                                                   ),
@@ -202,11 +203,17 @@ class _DepositImageScreenState extends State<DepositImageScreen> {
                                                                       child: lDepositImage[index]
                                                                               .tldeposit_image_base64
                                                                               .isEmpty
-                                                                          ? Container(
-                                                                              width: MediaQuery.of(context).size.width / 1.5,
-                                                                              child: Image.network(
-                                                                                lDepositImageDB.where((e) => e.tldeposit_image_id == lDepositImage[index].tldeposit_image_id).first.tldeposit_image_path,
-                                                                                fit: BoxFit.contain,
+
+                                                                              //! todoหมุนรูปreqByFIN
+                                                                          ? Transform 
+                                                                              .rotate(
+                                                                              angle: 0 * pi / 180,
+                                                                              child: Container(
+                                                                                width: MediaQuery.of(context).size.width / 1.5,
+                                                                                child: Image.network(
+                                                                                  lDepositImageDB.where((e) => e.tldeposit_image_id == lDepositImage[index].tldeposit_image_id).first.tldeposit_image_path,
+                                                                                  fit: BoxFit.contain,
+                                                                                ),
                                                                               ),
                                                                             )
                                                                           : Container(
@@ -219,6 +226,16 @@ class _DepositImageScreenState extends State<DepositImageScreen> {
                                                                     ),
                                                                   ),
                                                                 ),
+                                                                const SizedBox(
+                                                                    width: 50,
+                                                                    height: 50,
+                                                                    child: Card(
+                                                                      child: Icon(
+                                                                          Icons
+                                                                              .rotate_right_outlined,
+                                                                          size:
+                                                                              50),
+                                                                    ))
                                                               ],
                                                             ),
                                                           ),
@@ -254,18 +271,34 @@ class _DepositImageScreenState extends State<DepositImageScreen> {
                                                                       Icons
                                                                           .delete_forever_rounded,
                                                                       size: 32,
-                                                                      color: widget.isStatusScreen !=
-                                                                              'New'
-                                                                          ? Colors
-                                                                              .grey
-                                                                          : Colors
-                                                                              .red[200],
+                                                                      color: widget.isStatusScreen != 'New' &&
+                                                                              lDepositImage[index].tldeposit_image_base64.isNotEmpty
+                                                                          ? Colors.red[200]
+                                                                          : widget.isStatusScreen != 'New'
+                                                                              ? Colors.grey
+                                                                              : Colors.red[200],
                                                                     ),
                                                                     onPressed:
                                                                         () {
                                                                       if (widget
                                                                               .isStatusScreen !=
                                                                           'New') {
+                                                                        if (lDepositImage[index]
+                                                                            .tldeposit_image_base64
+                                                                            .isNotEmpty) {
+                                                                          widget
+                                                                              .callbackRemove(lDepositImage[index].tldeposit_image_id);
+
+                                                                          lDepositImage
+                                                                              .removeAt(index);
+                                                                          lImageControllers
+                                                                              .removeAt(index);
+
+                                                                          setState(
+                                                                              () {
+                                                                            Navigator.pop(context);
+                                                                          });
+                                                                        }
                                                                       } else {
                                                                         widget.callbackRemove(
                                                                             lDepositImage[index].tldeposit_image_id);
@@ -326,26 +359,20 @@ class _DepositImageScreenState extends State<DepositImageScreen> {
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 4, vertical: 2),
                                         child: Container(
-                                            color:
-                                                widget.isStatusScreen != 'New'
-                                                    ? Colors.grey
-                                                    : null,
                                             child: TextFormField(
-                                              readOnly:
-                                                  widget.isStatusScreen != 'New'
-                                                      ? true
-                                                      : false,
-                                              decoration: const InputDecoration(
-                                                  labelText: "Comment"),
-                                              controller:
-                                                  lImageControllers[index],
-                                              onChanged: (value) {
-                                                lDepositImage[index]
-                                                        .tldeposit_image_description =
-                                                    lImageControllers[index]
-                                                        .text;
-                                              },
-                                            )),
+                                          decoration: const InputDecoration(
+                                              labelText: "Comment"),
+                                          controller: lImageControllers[index],
+                                          onChanged: (value) {
+                                            lDepositImage[index]
+                                                    .tldeposit_image_description =
+                                                lImageControllers[index].text;
+                                            if (widget.isStatusScreen !=
+                                                'New') {
+                                              widget.callbackRemove(true);
+                                            }
+                                          },
+                                        )),
                                       )
                                     ],
                                   ),
@@ -361,44 +388,36 @@ class _DepositImageScreenState extends State<DepositImageScreen> {
                       onHover: (value) {
                         setState(() => isHover = value);
                       },
-                      style: widget.isStatusScreen != 'New'
-                          ? ElevatedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              backgroundColor: Colors.grey[600],
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(50)))
-                          : ElevatedButton.styleFrom(
-                              foregroundColor: isCheckRun
-                                  ? null
-                                  : isHover
-                                      ? Colors.green[900]
-                                      : Colors.green,
-                              backgroundColor: isCheckRun
-                                  ? Colors.grey[600]
-                                  : isHover
-                                      ? Colors.green[100]
-                                      : Colors.white,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(50))),
+                      style: ElevatedButton.styleFrom(
+                          foregroundColor: isCheckRun
+                              ? null
+                              : isHover
+                                  ? Colors.green[900]
+                                  : Colors.green,
+                          backgroundColor: isCheckRun
+                              ? Colors.grey[600]
+                              : isHover
+                                  ? Colors.green[100]
+                                  : Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50))),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: isCheckRun
                             ? const Center(child: Text(' Loading... '))
-                            : const Center(child: Text(' Upload ')),
+                            : const Center(
+                                child: SizedBox(child: Text(' Upload '))),
                       ),
                       onPressed: () async {
-                        if (widget.isStatusScreen != 'New') {
-                        } else {
-                          if (isCheckRun == false) {
-                            upload_pdf();
-                            setState(() {
-                              isCheckRun = true;
-                            });
+                        if (isCheckRun == false) {
+                          upload_pdf();
+                          setState(() {
+                            isCheckRun = true;
+                          });
 
-                            setState(() {
-                              isCheckRun = false;
-                            });
-                          }
+                          setState(() {
+                            isCheckRun = false;
+                          });
                         }
                       },
                     ),
@@ -426,71 +445,45 @@ class _DepositImageScreenState extends State<DepositImageScreen> {
     } catch (e) {
       print("Error ${e.toString()}");
     }
-    lImageOverSize = [];
     String imgLastName = _paths!.first.name!.split('.').last;
 
     if (_paths != null) {
       if (_paths != null) {
-        String runNum = DateTime.now().millisecondsSinceEpoch.toString();
         for (var i = 0; i < _paths!.length; i++) {
           String id = '${TlConstant.runID()}${i.toString().padLeft(3, '0')}';
+
           String base64string = base64.encode(_paths![i].bytes!);
 
-          if (_paths![i].size > 1000000) {
-            double size = _paths![i].size / 1000000;
-            String imageOverSize =
-                ' name : ${_paths![i].name} , size : ${size.toStringAsFixed(2)} MB';
-            lImageOverSize.add(imageOverSize);
-          } else {
-            DepositImageTempModel newImage = DepositImageTempModel(
-                tldeposit_image_id: id,
-                tldeposit_image_base64: base64string,
-                tldeposit_image_lastName: imgLastName,
-                tldeposit_image_description: '',
-                tldeposit_id: widget.depositId);
+          DepositImageTempModel newImage = DepositImageTempModel(
+              tldeposit_image_id: id,
+              tldeposit_image_base64: base64string,
+              tldeposit_image_lastName: imgLastName,
+              tldeposit_image_description: '',
+              tldeposit_id: widget.depositId);
 
-            lDepositImage.add(newImage);
-            lImageControllers.add(TextEditingController());
-            lImageControllers[i].text =
-                lDepositImage[i].tldeposit_image_description;
-          }
-        }
-        if (lImageOverSize.isNotEmpty) {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return Dialog(
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(16.0))),
-                  child: SizedBox(
-                    height: 300,
-                    width: 500,
-                    child: Column(
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text(
-                            'รูปภาพที่ไม่สามารถนำเข้าระบบได้ เนื่องจากมีขนาดใหญ่เกิน 1 M',
-                            style: TextStyle(color: Colors.red, fontSize: 16),
-                          ),
-                        ),
-                        Expanded(
-                          child: ListView.builder(
-                              itemCount: lImageOverSize.length,
-                              itemBuilder: (context, index) {
-                                return Text(lImageOverSize[index]);
-                              }),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              });
+          lDepositImage.add(newImage);
+          lImageControllers.add(TextEditingController());
+          lImageControllers[i].text =
+              lDepositImage[i].tldeposit_image_description;
         }
 
         widget.callbackFunctions(lDepositImage);
         setState(() {});
       }
     }
+  }
+
+  // 1. compress file and get Uint8List
+  Future<Uint8List?> testCompressFile(File file) async {
+    var result = await FlutterImageCompress.compressWithFile(
+      file.absolute.path,
+      minWidth: 2300,
+      minHeight: 1500,
+      quality: 94,
+      rotate: 90,
+    );
+    print(file.lengthSync());
+    print(result?.length);
+    return result;
   }
 }

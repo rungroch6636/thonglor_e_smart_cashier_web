@@ -983,8 +983,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                     });
                                                                     setState(
                                                                         () {
-                                                                      isSend =
-                                                                          true;
+                                                                    
                                                                     });
                                                                   });
                                                                 } else if (isStatusScreen ==
@@ -1097,8 +1096,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
 
                                                                       setState(
                                                                           () {
-                                                                        isSend =
-                                                                            true;
+                                                                    
                                                                       });
                                                                     });
                                                                   });

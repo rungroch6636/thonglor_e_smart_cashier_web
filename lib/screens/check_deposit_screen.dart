@@ -71,7 +71,7 @@ class _CheckDepositScreenState extends State<CheckDepositScreen> {
   List<PaymentDetailModel> lPaymentDetail = [];
   List<PaymentModel> lPayment = [];
 
-   List<PaymentMDAndDepositMDModel> lPaymentMDAndDepositMD = [];
+  List<PaymentMDAndDepositMDModel> lPaymentMDAndDepositMD = [];
   List<PaymentMDAndDepositMDAndFullNameModel>
       lPaymentMDAndDepositMDAndFullName = [];
   List<EmployeeModel> lEmployeeDeposit = [];
@@ -277,6 +277,7 @@ class _CheckDepositScreenState extends State<CheckDepositScreen> {
                                                                                             // lDepositImage.removeWhere((re) => re.tlpayment_detail_image_id == reId);
                                                                                             setState(() {});
                                                                                           },
+                                                                                          callbackChangeComment: () {},
                                                                                         ));
                                                                                   });
                                                                             },
@@ -723,8 +724,6 @@ class _CheckDepositScreenState extends State<CheckDepositScreen> {
     });
   }
 
-  
-
   //! Deposit
   Future createDeposit() async {
     String dateNow = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -796,7 +795,9 @@ class _CheckDepositScreenState extends State<CheckDepositScreen> {
     }
   }
 
-  groupPaymentDeposit(List<PaymentMDAndDepositMDAndFullNameModel> lPaymentMDAndDepositMDAndFullName) {
+  groupPaymentDeposit(
+      List<PaymentMDAndDepositMDAndFullNameModel>
+          lPaymentMDAndDepositMDAndFullName) {
     return groupBy(lPaymentMDAndDepositMDAndFullName, (gKey) {
       var nameAndDate = '${gKey.emp_fullname}  [ ${gKey.tlpayment_rec_date} ]';
       return nameAndDate;

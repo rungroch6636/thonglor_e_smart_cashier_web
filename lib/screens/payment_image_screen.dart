@@ -435,9 +435,7 @@ class _PaymentImageScreenState extends State<PaymentImageScreen> {
     } catch (e) {
       print("Error ${e.toString()}");
     }
-    lImageOverSize = [];
     String imgLastName = _paths!.first.name!.split('.').last;
-
     if (_paths != null) {
       if (_paths != null) {
         String runNum = DateTime.now().millisecondsSinceEpoch.toString();
@@ -445,12 +443,6 @@ class _PaymentImageScreenState extends State<PaymentImageScreen> {
           String id = '$runNum${i.toString().padLeft(3, '0')}';
           String base64string = base64.encode(_paths![i].bytes!);
 
-          if (_paths![i].size > 1000000) {
-            double size = _paths![i].size / 1000000;
-            String imageOverSize =
-                ' name : ${_paths![i].name} , size : ${size.toStringAsFixed(2)} MB';
-            lImageOverSize.add(imageOverSize);
-          } else {
             PaymentDetailImageTempModel newImage = PaymentDetailImageTempModel(
                 tlpayment_detail_image_id: id,
                 tlpayment_detail_id: widget.paymentDetailId,
@@ -463,40 +455,8 @@ class _PaymentImageScreenState extends State<PaymentImageScreen> {
             lImageControllers.add(TextEditingController());
             lImageControllers[i].text =
                 lPaymentImage[i].tlpayment_image_description;
-          }
         }
-        if (lImageOverSize.isNotEmpty) {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return Dialog(
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(16.0))),
-                  child: SizedBox(
-                    height: 300,
-                    width: 500,
-                    child: Column(
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text(
-                            'รูปภาพที่ไม่สามารถนำเข้าระบบได้ เนื่องจากมีขนาดใหญ่เกิน 1 M',
-                            style: TextStyle(color: Colors.red, fontSize: 16),
-                          ),
-                        ),
-                        Expanded(
-                          child: ListView.builder(
-                              itemCount: lImageOverSize.length,
-                              itemBuilder: (context, index) {
-                                return Text(lImageOverSize[index]);
-                              }),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              });
-        }
+     
         widget.callbackFunctions(lPaymentImage);
         setState(() {});
       }

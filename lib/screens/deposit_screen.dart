@@ -65,6 +65,7 @@ class _DepositScreenState extends State<DepositScreen> {
   List<TextEditingController> lActualControllers = [];
   List<double> lBalance = [];
   bool isHoverImage = false;
+  bool isEditImage = false;
   String runProcess = 'start';
   final oCcy = NumberFormat(
     "#,##0.00",
@@ -427,11 +428,24 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                                               callbackFunctions: (p0) {
                                                                                                 lDepositImage.clear();
                                                                                                 lDepositImage.addAll(p0);
+
+                                                                                                if (isStatusScreen != 'New') {
+                                                                                                  isEditImage = true;
+                                                                                                }
+
                                                                                                 setState(() {});
                                                                                               },
                                                                                               callbackRemove: (reId) {
                                                                                                 lDepositImage.removeWhere((re) => re.tldeposit_image_id == reId);
+
+                                                                                                if (isStatusScreen != 'New') {
+                                                                                                  isEditImage = true;
+                                                                                                }
+
                                                                                                 setState(() {});
+                                                                                              },
+                                                                                              callbackChangeComment: (i) {
+                                                                                                isEditImage = i;
                                                                                               },
                                                                                             ));
                                                                                       });
@@ -540,88 +554,220 @@ class _DepositScreenState extends State<DepositScreen> {
                                                           .size
                                                           .width /
                                                       3,
-                                                  child: ActionSlider.standard(
-                                                    height: 40,
-                                                    child: dTotalDeposit == 0
-                                                        ? const Text(
-                                                            'เลือกรายการที่จะนำฝาก')
-                                                        : isStatusScreen !=
-                                                                'New'
-                                                            ? const Text(
-                                                                'ท่านได้ทำรายการเสร็จสมบรูณ์แล้ว')
-                                                            : const Text(
-                                                                'เลื่อน Slider เพื่อยืนยัน การนำฝาก'),
-                                                    action: (controller) async {
-                                                      if (dTotalDeposit == 0 ||
-                                                          isStatusScreen !=
-                                                              'New') {
-                                                      } else {
-                                                        controller
-                                                            .loading(); //starts loading animation
-                                                        await Future.delayed(
-                                                            const Duration(
-                                                                milliseconds:
-                                                                    1200),
-                                                            () async {
-                                                          //! Deposit
-                                                          createDeposit();
-                                                          //! DepositDetail
-                                                          createDepositDetail();
-                                                          //await createPaymentDetail();
-                                                          if (lDepositImage
-                                                              .isEmpty) {
-                                                          } else {
-                                                            //! DepositImageDB
-                                                            await createDepositImageDB();
-                                                            //! DepositImageFolder
-                                                            await createDepositImageFolder();
-                                                          }
-                                                        }); //starts success animation
-                                                        controller.success();
-                                                        await Future.delayed(
-                                                            const Duration(
-                                                                milliseconds:
-                                                                    1200),
-                                                            () async {
-                                                          await loadPaymentDetailDeposit(
-                                                              siteDDValue,
-                                                              selectedDate);
+                                                  child: isEditImage
+                                                      ? ActionSlider.standard(
+                                                          height: 40,
+                                                          action:
+                                                              (controller) async {
+                                                            controller
+                                                                .loading(); //starts loading animation
+                                                            await Future.delayed(
+                                                                const Duration(
+                                                                    milliseconds:
+                                                                        1200),
+                                                                () async {
+                                                              showDialog(
+                                                                  context:
+                                                                      context,
+                                                                  builder:
+                                                                      (context) {
+                                                                    return Dialog(
+                                                                      backgroundColor:
+                                                                          Colors
+                                                                              .transparent,
+                                                                      child:
+                                                                          Container(
+                                                                        width:
+                                                                            80,
+                                                                        height:
+                                                                            80,
+                                                                        decoration: const BoxDecoration(
+                                                                            color:
+                                                                                Colors.white,
+                                                                            borderRadius: BorderRadius.all(Radius.circular(8))),
+                                                                        child:
+                                                                            const Row(
+                                                                          mainAxisAlignment:
+                                                                              MainAxisAlignment.center,
+                                                                          children: [
+                                                                            CircularProgressIndicator(),
+                                                                            SizedBox(
+                                                                              width: 32,
+                                                                            ),
+                                                                            Text('Loading...')
+                                                                          ],
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  });
 
-                                                          if (isNew == false) {
-                                                            setState(() {
-                                                              runProcess =
-                                                                  'loadData';
-                                                              isCheckRun = true;
-                                                              isNew = true;
+                                                              for (var ldi
+                                                                  in lDepositImage) {
+                                                                var ldidb = lDepositImageDB
+                                                                    .where((em) =>
+                                                                        em.tldeposit_image_id ==
+                                                                        ldi.tldeposit_image_id)
+                                                                    .toList();
+
+                                                                if (ldidb
+                                                                    .isEmpty) {
+                                                                  await createDepositImageDBById(
+                                                                      ldi);
+                                                                  await createDepositImageFolderById(
+                                                                      ldi);
+                                                                } else {
+                                                                  await updateDepositImageDBById(
+                                                                      ldidb
+                                                                          .first);
+                                                                }
+                                                              }
+                                                              //is Check Add Image Create Deposit Image
+                                                            }); //starts success animation
+                                                            controller
+                                                                .success();
+                                                            await Future.delayed(
+                                                                const Duration(
+                                                                    milliseconds:
+                                                                        1200),
+                                                                () async {
+                                                              // //! loadPaymentDetail
+                                                              await loadDepositDetailByDepositId(
+                                                                  depositId);
+
+                                                              if (isNew ==
+                                                                  false) {
+                                                                setState(() {
+                                                                  Navigator.pop(
+                                                                      context);
+                                                                  runProcess =
+                                                                      'loadData';
+                                                                  isCheckRun =
+                                                                      true;
+                                                                  isNew = true;
+                                                                });
+                                                                //! loadPaymentDetail
+                                                                setState(() {
+                                                                  isNew = false;
+                                                                  isEditImage =
+                                                                      false;
+                                                                  isCheckRun =
+                                                                      false;
+                                                                  controller
+                                                                      .reset();
+                                                                });
+                                                              }
                                                             });
-                                                            //! loadPaymentDetail
-                                                            setState(() {
-                                                              isNew = false;
-                                                              isCheckRun =
-                                                                  false;
+
+                                                            //starts success animation
+                                                          },
+                                                          backgroundColor:
+                                                              Colors
+                                                                  .orange[100],
+                                                          toggleColor:
+                                                              Colors.orange,
+                                                          child: const Text(
+                                                              'เลื่อน Slider เพื่อยืนยัน การแก้ไขข้อมูล'),
+                                                        )
+                                                      : ActionSlider.standard(
+                                                          height: 40,
+                                                          action:
+                                                              (controller) async {
+                                                            if (dTotalDeposit ==
+                                                                    0 ||
+                                                                isStatusScreen !=
+                                                                    'New') {
+                                                            } else {
                                                               controller
-                                                                  .reset();
-                                                            });
-                                                          }
-                                                        });
-                                                      }
-                                                      //starts success animation
-                                                    },
-                                                    backgroundColor:
-                                                        isStatusScreen !=
-                                                                    'New' ||
-                                                                dTotalDeposit ==
-                                                                    0
-                                                            ? Colors.grey[300]
-                                                            : Colors.green[100],
-                                                    toggleColor:
-                                                        isStatusScreen !=
-                                                                    'New' ||
-                                                                dTotalDeposit ==
-                                                                    0
-                                                            ? Colors.grey
-                                                            : Colors.green,
-                                                  ),
+                                                                  .loading(); //starts loading animation
+                                                              await Future.delayed(
+                                                                  const Duration(
+                                                                      milliseconds:
+                                                                          1200),
+                                                                  () async {
+                                                                //! Deposit
+                                                                createDeposit();
+                                                                //! DepositDetail
+                                                                createDepositDetail();
+                                                                //await createPaymentDetail();
+                                                                if (lDepositImage
+                                                                    .isEmpty) {
+                                                                } else {
+                                                                  //! DepositImageDB
+                                                                  await createDepositImageDB();
+                                                                  //! DepositImageFolder
+                                                                  await createDepositImageFolder();
+                                                                  // //! loadPaymentDetail.Image
+                                                                  await loadPaymentDetailImage(
+                                                                      depositId);
+                                                                }
+
+                                                                setState(() {});
+                                                              }); //starts success animation
+                                                              controller
+                                                                  .success();
+                                                              await Future.delayed(
+                                                                  const Duration(
+                                                                      milliseconds:
+                                                                          1200),
+                                                                  () async {
+                                                                await loadPaymentDetailDeposit(
+                                                                    siteDDValue,
+                                                                    selectedDate);
+
+                                                                if (isNew ==
+                                                                    false) {
+                                                                  setState(() {
+                                                                    runProcess =
+                                                                        'loadData';
+                                                                    isCheckRun =
+                                                                        true;
+                                                                    isNew =
+                                                                        true;
+                                                                  });
+                                                                  //! loadPaymentDetail
+                                                                  setState(() {
+                                                                    isNew =
+                                                                        false;
+                                                                    isEditImage =
+                                                                        false;
+                                                                    isCheckRun =
+                                                                        false;
+                                                                    controller
+                                                                        .reset();
+                                                                  });
+                                                                }
+                                                              });
+                                                            }
+                                                            //starts success animation
+                                                          },
+                                                          backgroundColor:
+                                                              isStatusScreen !=
+                                                                          'New' ||
+                                                                      dTotalDeposit ==
+                                                                          0
+                                                                  ? Colors
+                                                                      .grey[300]
+                                                                  : Colors.green[
+                                                                      100],
+                                                          toggleColor:
+                                                              isStatusScreen !=
+                                                                          'New' ||
+                                                                      dTotalDeposit ==
+                                                                          0
+                                                                  ? Colors.grey
+                                                                  : Colors
+                                                                      .green,
+                                                          child: dTotalDeposit ==
+                                                                  0
+                                                              ? const Text(
+                                                                  'เลือกรายการที่จะนำฝาก')
+                                                              : isStatusScreen !=
+                                                                      'New'
+                                                                  ? const Text(
+                                                                      'ท่านได้ทำรายการเสร็จสมบรูณ์แล้ว')
+                                                                  : const Text(
+                                                                      'เลื่อน Slider เพื่อยืนยัน การนำฝาก'),
+                                                        ),
                                                 ),
                                               ),
                                             ],
@@ -702,6 +848,8 @@ class _DepositScreenState extends State<DepositScreen> {
 
                               isStatusScreen = 'New';
                               siteRec = siteDDValue;
+
+                              isEditImage = false;
 
                               await loadDeposit(siteDDValue, dateRec);
                               await loadBank(siteDDValue);
@@ -1410,6 +1558,49 @@ class _DepositScreenState extends State<DepositScreen> {
       await Dio()
           .post('${TlConstant.syncApi}uploadFile.php', data: formDataImg);
     }
+  }
+
+//! DepositImageDB
+  Future createDepositImageDBById(DepositImageTempModel img) async {
+    var image_path =
+        '${TlConstant.syncApi}UploadImages/Deposit/${widget.lEmp.first.employee_id}/$depositDate/$siteRec/$depositId/${img.tldeposit_image_id}.${img.tldeposit_image_lastName}';
+    //! ToDB
+    FormData formData = FormData.fromMap({
+      "token": TlConstant.token,
+      "tldeposit_image_id": img.tldeposit_image_id,
+      "tldeposit_id": depositId,
+      "tldeposit_image_path": image_path,
+      "tldeposit_image_description": img.tldeposit_image_description,
+    });
+
+    String api = '${TlConstant.syncApi}tlDepositImage.php?id=create';
+    await Dio().post(api, data: formData);
+  }
+
+  //! DepositImageFolder
+  Future createDepositImageFolderById(DepositImageTempModel img) async {
+    // //!upload/Name/Date/Site/type_id/iMageName= type_id_ImageId
+    FormData formDataImg = FormData.fromMap({
+      "base64data": img.tldeposit_image_base64,
+      "typeFolder": 'Deposit',
+      "name": widget.lEmp.first.employee_id,
+      "date": depositDate,
+      "site": siteRec,
+      "type_id": img.tldeposit_id,
+      "lastname": img.tldeposit_image_lastName,
+      "imageId": img.tldeposit_image_id,
+    });
+    await Dio().post('${TlConstant.syncApi}uploadFile.php', data: formDataImg);
+  }
+
+  Future updateDepositImageDBById(DepositImageModel img) async {
+    FormData formData = FormData.fromMap({
+      "token": TlConstant.token,
+      "id": img.tldeposit_image_id,
+      "description": img.tldeposit_image_description,
+    });
+    String api = '${TlConstant.syncApi}tlDepositImage.php?id=update';
+    await Dio().post(api, data: formData);
   }
 
   groupPaymentDeposit(
