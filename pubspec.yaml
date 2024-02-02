@@ -39,12 +39,12 @@ dependencies:
   flutter_image_compress: ^2.1.0
   google_fonts: ^4.0.4
   icons_launcher: ^2.1.7
+  just_the_tooltip: ^0.0.12
   pattern_formatter: ^3.0.0
   pdf: ^3.10.7
   printing: ^5.11.1
   syncfusion_flutter_charts: ^24.1.45+2
   syncfusion_flutter_datepicker: ^24.1.45
-
 
 dev_dependencies:
   flutter_lints: ^2.0.0

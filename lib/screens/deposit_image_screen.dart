@@ -178,7 +178,8 @@ class _DepositImageScreenState extends State<DepositImageScreen> {
                                                                         if (widget.isStatusScreen !=
                                                                             'New') {
                                                                           widget
-                                                                              .callbackRemove(true);
+                                                                              .callbackChangeComment(lDepositImage[index]
+                                                                            );
                                                                         }
                                                                       },
                                                                     ),
@@ -204,8 +205,8 @@ class _DepositImageScreenState extends State<DepositImageScreen> {
                                                                               .tldeposit_image_base64
                                                                               .isEmpty
 
-                                                                              //! todoหมุนรูปreqByFIN
-                                                                          ? Transform 
+                                                                          //! todoหมุนรูปreqByFIN
+                                                                          ? Transform
                                                                               .rotate(
                                                                               angle: 0 * pi / 180,
                                                                               child: Container(
@@ -227,15 +228,16 @@ class _DepositImageScreenState extends State<DepositImageScreen> {
                                                                   ),
                                                                 ),
                                                                 const SizedBox(
-                                                                    width: 50,
-                                                                    height: 50,
-                                                                    child: Card(
-                                                                      child: Icon(
-                                                                          Icons
-                                                                              .rotate_right_outlined,
-                                                                          size:
-                                                                              50),
-                                                                    ))
+                                                                  width: 50,
+                                                                  height: 50,
+                                                                  // child: Card(
+                                                                  //   child: Icon(
+                                                                  //       Icons
+                                                                  //           .rotate_right_outlined,
+                                                                  //       size:
+                                                                  //           50),
+                                                                  // )
+                                                                )
                                                               ],
                                                             ),
                                                           ),
@@ -369,7 +371,7 @@ class _DepositImageScreenState extends State<DepositImageScreen> {
                                                 lImageControllers[index].text;
                                             if (widget.isStatusScreen !=
                                                 'New') {
-                                              widget.callbackRemove(true);
+                                              widget.callbackChangeComment(lDepositImage[index]);
                                             }
                                           },
                                         )),

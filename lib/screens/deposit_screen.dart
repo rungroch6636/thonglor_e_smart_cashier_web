@@ -444,8 +444,12 @@ class _DepositScreenState extends State<DepositScreen> {
 
                                                                                                 setState(() {});
                                                                                               },
-                                                                                              callbackChangeComment: (i) {
-                                                                                                isEditImage = i;
+                                                                                              callbackChangeComment: (dim) {
+                                                                                                lDepositImage.where((ee) => ee.tldeposit_image_id == dim.tldeposit_image_id).first.tldeposit_image_description = dim.tldeposit_image_description;
+                                                                                                if (isStatusScreen != 'New') {
+                                                                                                  isEditImage = true;
+                                                                                                }
+                                                                                                setState(() {});
                                                                                               },
                                                                                             ));
                                                                                       });
@@ -567,6 +571,8 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                         1200),
                                                                 () async {
                                                               showDialog(
+                                                                  barrierDismissible:
+                                                                      false,
                                                                   context:
                                                                       context,
                                                                   builder:
@@ -617,8 +623,7 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                       ldi);
                                                                 } else {
                                                                   await updateDepositImageDBById(
-                                                                      ldidb
-                                                                          .first);
+                                                                      ldi);
                                                                 }
                                                               }
                                                               //is Check Add Image Create Deposit Image
@@ -632,6 +637,9 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                 () async {
                                                               // //! loadPaymentDetail
                                                               await loadDepositDetailByDepositId(
+                                                                  depositId);
+
+                                                              await loadPaymentDetailImage(
                                                                   depositId);
 
                                                               if (isNew ==
@@ -1593,7 +1601,7 @@ class _DepositScreenState extends State<DepositScreen> {
     await Dio().post('${TlConstant.syncApi}uploadFile.php', data: formDataImg);
   }
 
-  Future updateDepositImageDBById(DepositImageModel img) async {
+  Future updateDepositImageDBById(DepositImageTempModel img) async {
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
       "id": img.tldeposit_image_id,

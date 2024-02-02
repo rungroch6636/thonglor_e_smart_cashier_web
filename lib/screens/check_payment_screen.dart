@@ -7,6 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:just_the_tooltip/just_the_tooltip.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:badges/badges.dart' as badges;
@@ -145,7 +146,7 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
   List<PaymentDetailModel> lPaymentDetail = [];
   List<PaymentDetailModel> lPaymentDetailShow = [];
   String isSelectCardEmp = 'ALL';
-
+  String isSelectCardPaymentId = '';
   var groupPaymentType;
 
   bool isLoopRun = false;
@@ -162,6 +163,7 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
   String statusApproveValue = '';
 
   String empReq = '';
+  String paymentComment = '';
 
   @override
   void initState() {
@@ -299,8 +301,11 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                                                                   ? Colors.green[
                                                                       100]
                                                                   : isSelectCardEmp ==
-                                                                          lPaymentMaster[index]
-                                                                              .emp_fullname
+                                                                              lPaymentMaster[index]
+                                                                                  .emp_fullname &&
+                                                                          isSelectCardPaymentId ==
+                                                                              lPaymentMaster[index]
+                                                                                  .tlpayment_id
                                                                       ? Colors
                                                                           .green[100]
                                                                       : null,
@@ -319,6 +324,14 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                                                                     isSelectCardEmp =
                                                                         lPaymentMaster[index]
                                                                             .emp_fullname;
+
+                                                                    isSelectCardPaymentId =
+                                                                        lPaymentMaster[index]
+                                                                            .tlpayment_id;
+
+                                                                    paymentComment =
+                                                                        lPaymentMaster[index]
+                                                                            .tlpayment_comment;
 
                                                                     if (lPaymentMaster[index]
                                                                             .emp_fullname ==
@@ -462,7 +475,7 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                                                                                 TextStyle(
                                                                               color: isSelectCardEmp == 'ALL'
                                                                                   ? Colors.green[900]
-                                                                                  : isSelectCardEmp == lPaymentMaster[index].emp_fullname
+                                                                                  : isSelectCardEmp == lPaymentMaster[index].emp_fullname && isSelectCardPaymentId == lPaymentMaster[index].tlpayment_id
                                                                                       ? Colors.green[900]
                                                                                       : null,
                                                                             )),
@@ -955,8 +968,43 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                                                                 .spaceAround,
                                                         //isSelectCardEmp == 'ALL'
                                                         children: [
-                                                          const SizedBox(
-                                                            width: 60,
+                                                          SizedBox(
+                                                            width: 30,
+                                                            child: isSelectCardEmp ==
+                                                                    'ALL'
+                                                                ? null
+                                                                : paymentComment ==
+                                                                        ''
+                                                                    ? Icon(
+                                                                        Icons
+                                                                            .message_rounded,
+                                                                        color: Colors
+                                                                            .green[800],
+                                                                      )
+                                                                    : JustTheTooltip(
+                                                                        content:
+                                                                            Padding(
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              8.0),
+                                                                          child:
+                                                                              Text(paymentComment),
+                                                                        ),
+                                                                        child: badges
+                                                                            .Badge(
+                                                                          badgeContent: const Text(
+                                                                              ' ! ',
+                                                                              style: TextStyle(color: Colors.white, fontSize: 10)),
+                                                                          badgeAnimation:
+                                                                              const badges.BadgeAnimation.scale(),
+                                                                          child:
+                                                                              Icon(
+                                                                            Icons.message_rounded,
+                                                                            color:
+                                                                                Colors.green[800],
+                                                                          ),
+                                                                        ),
+                                                                      ),
                                                           ),
                                                           //isSelectCardEmp =='ALL'?
                                                           const SizedBox(
@@ -1358,7 +1406,7 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                                                                                   }); //starts success animation
                                                                                   controller.success();
                                                                                   await Future.delayed(const Duration(milliseconds: 1200), () async {
-                                                                                     isSelectCardEmp = 'ALL';
+                                                                                    isSelectCardEmp = 'ALL';
                                                                                     //! load Payment Status Waiting
                                                                                     await loadPaymentMasterCheck(siteDDValue, dateRec);
                                                                                     //!total
