@@ -955,6 +955,12 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                       .text = lDepositChoice[
                                                                           index]
                                                                       .tldeposit_comment;
+
+                                                                  bankNumber =
+                                                                      lDepositChoice[
+                                                                              index]
+                                                                          .tldeposit_bank_account;
+
                                                                   setState(() {
                                                                     Navigator.of(
                                                                             context)
@@ -1639,6 +1645,7 @@ class _DepositScreenState extends State<DepositScreen> {
             // This is called when the user selects an item.
             setState(() {
               bankValue = value!;
+              bankNumber = value;
               print(bankValue);
             });
           },

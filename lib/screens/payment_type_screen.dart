@@ -800,9 +800,18 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                   startTime,
                                                                   endTime);
 
-                                                              setState(() {
-                                                                Navigator.pop(
-                                                                    context);
+                                                              Future.delayed(
+                                                                  Duration(
+                                                                      milliseconds:
+                                                                          500),
+                                                                  () {
+                                                                setState(() {
+                                                                  Navigator.pop(
+                                                                      context);
+                                                                  groupName =
+                                                                      groupPaymentDeposit(
+                                                                          lPaymentDetail);
+                                                                });
                                                               });
                                                             })
                                                         : null,
@@ -982,9 +991,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                           context);
                                                                     });
                                                                     setState(
-                                                                        () {
-                                                                    
-                                                                    });
+                                                                        () {});
                                                                   });
                                                                 } else if (isStatusScreen ==
                                                                         'create' ||
@@ -1095,9 +1102,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                           context);
 
                                                                       setState(
-                                                                          () {
-                                                                    
-                                                                      });
+                                                                          () {});
                                                                     });
                                                                   });
                                                                 }
@@ -2122,7 +2127,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
           dTotalBalance += double.parse(newPD.tlpayment_detail_diff_paid);
           dTotalIncome += double.parse(newPD.paid);
         }
-        groupName = groupPaymentDeposit(lPaymentDetail);
+        //groupName = groupPaymentDeposit(lPaymentDetail);
       }
     });
   }
@@ -2177,8 +2182,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
           //! diff
           double dPaidGo = double.parse(upPD.first.paid_go);
 
-          double dActual =
-              double.parse(upPD.first.tlpayment_detail_actual_paid);
+          double dActual = dPaidGo;
           double dDiff = dActual - dPaidGo;
           upPD.first.tlpayment_detail_diff_paid = dDiff.toStringAsFixed(2);
 
@@ -2210,6 +2214,13 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                   .where((eee) =>
                       eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
                   .first
+                  .tlpayment_detail_actual_paid =
+              double.parse(upPD.first.paid_go).toStringAsFixed(2);
+
+          lPaymentDetail
+                  .where((eee) =>
+                      eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
+                  .first
                   .tlpayment_detail_diff_paid =
               double.parse(upPD.first.tlpayment_detail_diff_paid)
                   .toStringAsFixed(2);
@@ -2219,9 +2230,10 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
           dTotalBalance += double.parse(upPD.first.tlpayment_detail_diff_paid);
           dTotalIncome += double.parse(upPD.first.paid);
         }
-        groupName = groupPaymentDeposit(lPaymentDetail);
+        groupName = ''; //groupPaymentDeposit(lPaymentDetail);
       }
     });
+    setState(() {});
   }
 
   Future loadPaymentByDate(

@@ -6,7 +6,7 @@ class TlConstant {
   static const String syncApi =
       'https://e-cashier.thonglorpet.com/apiTLSmartCashier/';
 
-  static final String version = 'TL670202V012';
+  static final String version = 'TL670205V015';
   static final String token = 'epyTtnemyaPegnahCipa';
 
   //r แก้ connect.php เป็น .5
@@ -17,3 +17,9 @@ class TlConstant {
   static String runID() => DateTime.now().millisecondsSinceEpoch.toString();
   static String random() => Random().nextInt(999).toString().padLeft(3, '0');
 }
+
+/*
+  flutter build web --web-renderer canvaskit
+  flutter pub get
+  flutter clean
+*/
