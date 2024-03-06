@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:thonglor_e_smart_cashier_web/models/bank_model.dart';
@@ -23,6 +25,7 @@ import 'package:collection/collection.dart';
 import '../models/deposit_model.dart';
 import '../models/employee_model.dart';
 import '../models/paymentMDAndDepositMD_model.dart';
+import 'package:pdf/widgets.dart ' as pw;
 
 class DepositScreen extends StatefulWidget {
   List<EmployeeModel> lEmp;
@@ -65,6 +68,7 @@ class _DepositScreenState extends State<DepositScreen> {
   List<TextEditingController> lActualControllers = [];
   List<double> lBalance = [];
   bool isHoverImage = false;
+  bool isHoverPrint = false;
   bool isEditImage = false;
   String runProcess = 'start';
   final oCcy = NumberFormat(
@@ -88,7 +92,7 @@ class _DepositScreenState extends State<DepositScreen> {
   var groupName;
 
   String siteRec = '';
-
+  String depositBy = '';
   List<DepositModel> lDepositChoice = [];
 
   List<String> lBankNumber = [];
@@ -209,6 +213,7 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                                     itemCount: data.length,
                                                                                     itemBuilder: (context, index) {
                                                                                       PaymentMDAndDepositMDAndFullNameModel mPayment = data[index];
+                                                                                      depositBy = mPayment.tldeposit_create_by_fullname;
                                                                                       return Row(
                                                                                         children: [
                                                                                           SizedBox(
@@ -476,6 +481,47 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                                         Icons.add_photo_alternate_rounded,
                                                                                         color: isHoverImage ? Colors.green[900] : Colors.grey,
                                                                                       )))),
+                                                                    Padding(
+                                                                      padding: EdgeInsets.symmetric(
+                                                                          horizontal:
+                                                                              8),
+                                                                      child:
+                                                                          SizedBox(
+                                                                        child: isStatusScreen !=
+                                                                                'success'
+                                                                            ? null
+                                                                            : InkWell(
+                                                                                onTap: () async {
+                                                                                  // //!Print
+                                                                                  String dateNow = DateFormat('yyyy-MM-dd').format(DateTime.now());
+                                                                                  String timeNow = DateFormat('HH:mm:ss').format(DateTime.now());
+                                                                                  var printNumber = '${widget.lEmp.first.employee_id}_${dateNow}_${timeNow}';
+                                                                                  final doc = pw.Document();
+                                                                                  await _genPDFDepositForm(doc, widget.lEmp, printNumber);
+                                                                                  await Future.delayed(const Duration(milliseconds: 100), () async {
+                                                                                    await showDialog(
+                                                                                        context: context,
+                                                                                        builder: (context) {
+                                                                                          return Padding(
+                                                                                            padding: const EdgeInsets.all(8.0),
+                                                                                            child: DailyByEmpForm(doc: doc, pdfFileName: printNumber),
+                                                                                          );
+                                                                                        });
+                                                                                  });
+
+                                                                                  //Print
+                                                                                },
+                                                                                onHover: (value) {
+                                                                                  isHoverPrint = value;
+                                                                                  setState(() {});
+                                                                                },
+                                                                                child: Icon(
+                                                                                  Icons.print,
+                                                                                  color: isHoverPrint ? Colors.green[900] : Colors.grey,
+                                                                                ),
+                                                                              ),
+                                                                      ),
+                                                                    ),
                                                                     const Expanded(
                                                                         child:
                                                                             SizedBox()),
@@ -550,141 +596,22 @@ class _DepositScreenState extends State<DepositScreen> {
                                                 ),
                                               ),
                                               const Expanded(child: SizedBox()),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: SizedBox(
-                                                  width: MediaQuery.of(context)
-                                                          .size
-                                                          .width /
-                                                      3,
-                                                  child: isEditImage
-                                                      ? ActionSlider.standard(
-                                                          height: 40,
-                                                          action:
-                                                              (controller) async {
-                                                            controller
-                                                                .loading(); //starts loading animation
-                                                            await Future.delayed(
-                                                                const Duration(
-                                                                    milliseconds:
-                                                                        1200),
-                                                                () async {
-                                                              showDialog(
-                                                                  barrierDismissible:
-                                                                      false,
-                                                                  context:
-                                                                      context,
-                                                                  builder:
-                                                                      (context) {
-                                                                    return Dialog(
-                                                                      backgroundColor:
-                                                                          Colors
-                                                                              .transparent,
-                                                                      child:
-                                                                          Container(
-                                                                        width:
-                                                                            80,
-                                                                        height:
-                                                                            80,
-                                                                        decoration: const BoxDecoration(
-                                                                            color:
-                                                                                Colors.white,
-                                                                            borderRadius: BorderRadius.all(Radius.circular(8))),
-                                                                        child:
-                                                                            const Row(
-                                                                          mainAxisAlignment:
-                                                                              MainAxisAlignment.center,
-                                                                          children: [
-                                                                            CircularProgressIndicator(),
-                                                                            SizedBox(
-                                                                              width: 32,
-                                                                            ),
-                                                                            Text('Loading...')
-                                                                          ],
-                                                                        ),
-                                                                      ),
-                                                                    );
-                                                                  });
-
-                                                              for (var ldi
-                                                                  in lDepositImage) {
-                                                                var ldidb = lDepositImageDB
-                                                                    .where((em) =>
-                                                                        em.tldeposit_image_id ==
-                                                                        ldi.tldeposit_image_id)
-                                                                    .toList();
-
-                                                                if (ldidb
-                                                                    .isEmpty) {
-                                                                  await createDepositImageDBById(
-                                                                      ldi);
-                                                                  await createDepositImageFolderById(
-                                                                      ldi);
-                                                                } else {
-                                                                  await updateDepositImageDBById(
-                                                                      ldi);
-                                                                }
-                                                              }
-                                                              //is Check Add Image Create Deposit Image
-                                                            }); //starts success animation
-                                                            controller
-                                                                .success();
-                                                            await Future.delayed(
-                                                                const Duration(
-                                                                    milliseconds:
-                                                                        1200),
-                                                                () async {
-                                                              // //! loadPaymentDetail
-                                                              await loadDepositDetailByDepositId(
-                                                                  depositId);
-
-                                                              await loadPaymentDetailImage(
-                                                                  depositId);
-
-                                                              if (isNew ==
-                                                                  false) {
-                                                                setState(() {
-                                                                  Navigator.pop(
-                                                                      context);
-                                                                  runProcess =
-                                                                      'loadData';
-                                                                  isCheckRun =
-                                                                      true;
-                                                                  isNew = true;
-                                                                });
-                                                                //! loadPaymentDetail
-                                                                setState(() {
-                                                                  isNew = false;
-                                                                  isEditImage =
-                                                                      false;
-                                                                  isCheckRun =
-                                                                      false;
-                                                                  controller
-                                                                      .reset();
-                                                                });
-                                                              }
-                                                            });
-
-                                                            //starts success animation
-                                                          },
-                                                          backgroundColor:
-                                                              Colors
-                                                                  .orange[100],
-                                                          toggleColor:
-                                                              Colors.orange,
-                                                          child: const Text(
-                                                              'เลื่อน Slider เพื่อยืนยัน การแก้ไขข้อมูล'),
-                                                        )
-                                                      : ActionSlider.standard(
-                                                          height: 40,
-                                                          action:
-                                                              (controller) async {
-                                                            if (dTotalDeposit ==
-                                                                    0 ||
-                                                                isStatusScreen !=
-                                                                    'New') {
-                                                            } else {
+                                              SizedBox(
+                                                child: 
+                                                 
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: SizedBox(
+                                                    width: MediaQuery.of(context)
+                                                            .size
+                                                            .width /
+                                                        3,
+                                                    child: isEditImage
+                                                        ? ActionSlider.standard(
+                                                            height: 40,
+                                                            action:
+                                                                (controller) async {
                                                               controller
                                                                   .loading(); //starts loading animation
                                                               await Future.delayed(
@@ -692,24 +619,63 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                       milliseconds:
                                                                           1200),
                                                                   () async {
-                                                                //! Deposit
-                                                                createDeposit();
-                                                                //! DepositDetail
-                                                                createDepositDetail();
-                                                                //await createPaymentDetail();
-                                                                if (lDepositImage
-                                                                    .isEmpty) {
-                                                                } else {
-                                                                  //! DepositImageDB
-                                                                  await createDepositImageDB();
-                                                                  //! DepositImageFolder
-                                                                  await createDepositImageFolder();
-                                                                  // //! loadPaymentDetail.Image
-                                                                  await loadPaymentDetailImage(
-                                                                      depositId);
+                                                                showDialog(
+                                                                    barrierDismissible:
+                                                                        false,
+                                                                    context:
+                                                                        context,
+                                                                    builder:
+                                                                        (context) {
+                                                                      return Dialog(
+                                                                        backgroundColor:
+                                                                            Colors
+                                                                                .transparent,
+                                                                        child:
+                                                                            Container(
+                                                                          width:
+                                                                              80,
+                                                                          height:
+                                                                              80,
+                                                                          decoration: const BoxDecoration(
+                                                                              color:
+                                                                                  Colors.white,
+                                                                              borderRadius: BorderRadius.all(Radius.circular(8))),
+                                                                          child:
+                                                                              const Row(
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.center,
+                                                                            children: [
+                                                                              CircularProgressIndicator(),
+                                                                              SizedBox(
+                                                                                width: 32,
+                                                                              ),
+                                                                              Text('Loading...')
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    });
+                                                
+                                                                for (var ldi
+                                                                    in lDepositImage) {
+                                                                  var ldidb = lDepositImageDB
+                                                                      .where((em) =>
+                                                                          em.tldeposit_image_id ==
+                                                                          ldi.tldeposit_image_id)
+                                                                      .toList();
+                                                
+                                                                  if (ldidb
+                                                                      .isEmpty) {
+                                                                    await createDepositImageDBById(
+                                                                        ldi);
+                                                                    await createDepositImageFolderById(
+                                                                        ldi);
+                                                                  } else {
+                                                                    await updateDepositImageDBById(
+                                                                        ldi);
+                                                                  }
                                                                 }
-
-                                                                setState(() {});
+                                                                //is Check Add Image Create Deposit Image
                                                               }); //starts success animation
                                                               controller
                                                                   .success();
@@ -718,24 +684,27 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                       milliseconds:
                                                                           1200),
                                                                   () async {
-                                                                await loadPaymentDetailDeposit(
-                                                                    siteDDValue,
-                                                                    selectedDate);
-
+                                                                // //! loadPaymentDetail
+                                                                await loadDepositDetailByDepositId(
+                                                                    depositId);
+                                                
+                                                                await loadDepositImage(
+                                                                    depositId);
+                                                
                                                                 if (isNew ==
                                                                     false) {
                                                                   setState(() {
+                                                                    Navigator.pop(
+                                                                        context);
                                                                     runProcess =
                                                                         'loadData';
                                                                     isCheckRun =
                                                                         true;
-                                                                    isNew =
-                                                                        true;
+                                                                    isNew = true;
                                                                   });
                                                                   //! loadPaymentDetail
                                                                   setState(() {
-                                                                    isNew =
-                                                                        false;
+                                                                    isNew = false;
                                                                     isEditImage =
                                                                         false;
                                                                     isCheckRun =
@@ -745,37 +714,125 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                   });
                                                                 }
                                                               });
-                                                            }
-                                                            //starts success animation
-                                                          },
-                                                          backgroundColor:
-                                                              isStatusScreen !=
-                                                                          'New' ||
-                                                                      dTotalDeposit ==
-                                                                          0
-                                                                  ? Colors
-                                                                      .grey[300]
-                                                                  : Colors.green[
-                                                                      100],
-                                                          toggleColor:
-                                                              isStatusScreen !=
-                                                                          'New' ||
-                                                                      dTotalDeposit ==
-                                                                          0
-                                                                  ? Colors.grey
-                                                                  : Colors
-                                                                      .green,
-                                                          child: dTotalDeposit ==
-                                                                  0
-                                                              ? const Text(
-                                                                  'เลือกรายการที่จะนำฝาก')
-                                                              : isStatusScreen !=
-                                                                      'New'
-                                                                  ? const Text(
-                                                                      'ท่านได้ทำรายการเสร็จสมบรูณ์แล้ว')
-                                                                  : const Text(
-                                                                      'เลื่อน Slider เพื่อยืนยัน การนำฝาก'),
-                                                        ),
+                                                
+                                                              //starts success animation
+                                                            },
+                                                            backgroundColor:
+                                                                Colors
+                                                                    .orange[100],
+                                                            toggleColor:
+                                                                Colors.orange,
+                                                            child: const Text(
+                                                                'เลื่อน Slider เพื่อยืนยัน การแก้ไขข้อมูล'),
+                                                          )
+                                                        : 
+                                                        ActionSlider.standard(
+                                                            height: 40,
+                                                            action:
+                                                                (controller) async {
+                                                              if (dTotalDeposit <=
+                                                                      0 ||
+                                                                  isStatusScreen !=
+                                                                      'New') {
+                                                              } else {
+                                                                controller
+                                                                    .loading(); //starts loading animation
+                                                                await Future.delayed(
+                                                                    const Duration(
+                                                                        milliseconds:
+                                                                            1200),
+                                                                    () async {
+                                                                  //! Deposit
+                                                                  createDeposit();
+                                                                  //! DepositDetail
+                                                                  createDepositDetail();
+                                                                  //await createPaymentDetail();
+                                                                  if (lDepositImage
+                                                                      .isEmpty) {
+                                                                  } else {
+                                                                    //! DepositImageDB
+                                                                    await createDepositImageDB();
+                                                                    //! DepositImageFolder
+                                                                    await createDepositImageFolder();
+                                                                    // //! loadPaymentDetail.Image
+                                                                    await loadDepositImage(
+                                                                        depositId);
+                                                                  }
+                                                
+                                                                  //!Todo หลังCreateแล้วต้องปริ้นได้
+                                                
+                                                                  setState(() {});
+                                                                }); //starts success animation
+                                                                controller
+                                                                    .success();
+                                                                await Future.delayed(
+                                                                    const Duration(
+                                                                        milliseconds:
+                                                                            1200),
+                                                                    () async {
+                                                                  // //! loadPaymentDetail
+                                                                  await loadDepositDetailByDepositId(
+                                                                      depositId);
+                                                
+                                                                  if (isNew ==
+                                                                      false) {
+                                                                    setState(() {
+                                                                      runProcess =
+                                                                          'loadData';
+                                                                      isCheckRun =
+                                                                          true;
+                                                                      isNew =
+                                                                          true;
+                                                                    });
+                                                                    //! loadPaymentDetail
+                                                                    setState(() {
+                                                                      isNew =
+                                                                          false;
+                                                                      isEditImage =
+                                                                          false;
+                                                                      isCheckRun =
+                                                                          false;
+                                                                      controller
+                                                                          .reset();
+                                                                    });
+                                                                  }
+                                                                });
+                                                              }
+                                                              //starts success animation
+                                                            },
+                                                            backgroundColor:
+                                                                isStatusScreen !=
+                                                                            'New' ||
+                                                                        dTotalDeposit <=
+                                                                            0
+                                                                    ? Colors
+                                                                        .grey[300]
+                                                                    : Colors.green[
+                                                                        100],
+                                                            toggleColor:
+                                                                isStatusScreen !=
+                                                                            'New' ||
+                                                                        dTotalDeposit <=
+                                                                            0
+                                                                    ? Colors.grey
+                                                                    : Colors
+                                                                        .green,
+                                                            child: isStatusScreen !=
+                                                                    'New' 
+                                                                ? const Text(
+                                                                    'ท่านได้ทำรายการเสร็จสมบรูณ์แล้ว')
+                                                                : dTotalDeposit ==
+                                                                        0
+                                                                    ? const Text(
+                                                                        'เลือกรายการที่จะนำฝาก')
+                                                                    : dTotalDeposit <=
+                                                                            0
+                                                                        ? const Text(
+                                                                            'จำนวนเงินนำฝากติดลบ ไม่สามารถนำฝากได้')
+                                                                        : const Text(
+                                                                            'เลื่อน Slider เพื่อยืนยัน การนำฝาก'),
+                                                          ),
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -854,7 +911,7 @@ class _DepositScreenState extends State<DepositScreen> {
                               print(selectedDate);
                               print(siteDDValue);
 
-                              isStatusScreen = 'New';
+                            
                               siteRec = siteDDValue;
 
                               isEditImage = false;
@@ -978,7 +1035,7 @@ class _DepositScreenState extends State<DepositScreen> {
                                                                       depositId);
 
                                                                   // //! loadPaymentDetail.Image
-                                                                  await loadPaymentDetailImage(
+                                                                  await loadDepositImage(
                                                                       depositId);
 
                                                                   setState(() {
@@ -1116,6 +1173,7 @@ class _DepositScreenState extends State<DepositScreen> {
                                                             .clear();
                                                         depositActualController
                                                             .clear();
+                                                              isStatusScreen = 'New';
                                                         dTotalDeposit = 0;
 
                                                         await loadPaymentDetailDeposit(
@@ -1147,6 +1205,7 @@ class _DepositScreenState extends State<DepositScreen> {
                                 depositBankAccountController.clear();
                                 depositCommentController.clear();
                                 depositActualController.clear();
+                                  isStatusScreen = 'New';
                                 dTotalDeposit = 0;
                                 await loadPaymentDetailDeposit(
                                     siteDDValue, selectedDate);
@@ -1441,7 +1500,7 @@ class _DepositScreenState extends State<DepositScreen> {
     });
   }
 
-  Future loadPaymentDetailImage(String depositId) async {
+  Future loadDepositImage(String depositId) async {
     lDepositImage = [];
     lDepositImageDB = [];
     FormData formData = FormData.fromMap(
@@ -1643,11 +1702,14 @@ class _DepositScreenState extends State<DepositScreen> {
           ),
           onChanged: (String? value) {
             // This is called when the user selects an item.
-            setState(() {
-              bankValue = value!;
-              bankNumber = value;
-              print(bankValue);
-            });
+            if (isStatusScreen == 'success') {
+            } else {
+              setState(() {
+                bankValue = value!;
+                bankNumber = value;
+                print(bankNumber);
+              });
+            }
           },
           items: lBankNumber.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
@@ -1660,6 +1722,287 @@ class _DepositScreenState extends State<DepositScreen> {
           }).toList(),
         );
       },
+    );
+  }
+
+  Future<void> _genPDFDepositForm(
+    pw.Document doc,
+    List<EmployeeModel> pLEmployee,
+    String printNumber,
+  ) async {
+    var pGroupName = groupPaymentDeposit(lPaymentMDAndDepositMDAndFullName);
+
+    //var siteName = pLSite.first.site_name;
+
+    var arabicFont =
+        pw.Font.ttf(await rootBundle.load("fonts/RSU-Regular.ttf"));
+    var fontBold = pw.Font.ttf(await rootBundle.load("fonts/RSU-Bold.ttf"));
+
+    int iPdfIndex = 0;
+
+    doc.addPage(
+      pw.Page(
+        orientation: pw.PageOrientation.natural,
+        margin: const pw.EdgeInsets.all(8.0),
+        theme: pw.ThemeData.withFont(
+          base: arabicFont,
+        ),
+        pageFormat: PdfPageFormat.a4.portrait,
+        build: (pw.Context context) {
+          return pw.Container(
+            child: pw.Padding(
+              padding: const pw.EdgeInsets.all(8),
+              child: pw.Column(
+                  mainAxisAlignment: pw.MainAxisAlignment.start,
+                  children: [
+                    // Harder
+                    pw.Container(
+                        height: 100,
+                        child: pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.center,
+                            children: [
+                              pw.SizedBox(height: 8),
+                              pw.Text('บริษัท โรงพยาบาลสัตว์ทองหล่อ จำกัด',
+                                  style: pw.TextStyle(
+                                      font: fontBold, fontSize: 14)),
+                              pw.Text('Thonglor Pet Hospital Co.,Ltd.',
+                                  style: pw.TextStyle(
+                                      font: fontBold, fontSize: 14)),
+                              pw.Text('รายงานนำฝาก',
+                                  style: pw.TextStyle(fontSize: 10)),
+                              pw.SizedBox(height: 8),
+                              pw.Text(
+                                  'นำฝากวันที่ ${depositDate}  โดย ${depositBy} เลขที่บัญชี ${bankNumber}',
+                                  style: pw.TextStyle(fontSize: 10)),
+                              pw.Text('ผลัดวันที่ ${dateRec}  สาขา ${siteRec}',
+                                  style: pw.TextStyle(fontSize: 10)),
+                            ])),
+
+                    pw.SizedBox(height: 8),
+                    //body
+                    pw.Expanded(
+                      flex: 8,
+                      child: pw.Container(
+                          //color: PdfColors.green100,
+                          child: pw.Column(children: [
+                        pw.Expanded(
+                          child: pw.SizedBox(
+                            child: pw.ListView.builder(
+                              itemCount: pGroupName.length,
+                              itemBuilder: (context, indexHeader) {
+                                iPdfIndex += 1;
+
+                                String pFullName =
+                                    pGroupName.keys.elementAt(indexHeader);
+                                List<PaymentMDAndDepositMDAndFullNameModel>
+                                    data =
+                                    pGroupName.values.elementAt(indexHeader);
+
+                                return pw.Column(
+                                  children: [
+                                    pw.Container(
+                                        color: PdfColors.green100,
+                                        child: pw.Align(
+                                          alignment: pw.Alignment.centerLeft,
+                                          child: pw.Padding(
+                                            padding:
+                                                const pw.EdgeInsets.symmetric(
+                                                    horizontal: 8, vertical: 4),
+                                            child: pw.Text(
+                                              pFullName,
+                                              style: pw.TextStyle(
+                                                  font: fontBold, fontSize: 8),
+                                            ),
+                                          ),
+                                        )),
+                                    pw.ListView.builder(
+                                        // shrinkWrap: true,
+                                        // physics: ClampingScrollPhysics(),
+                                        itemCount: data.length,
+                                        itemBuilder:
+                                            (context, int indexDetail) {
+                                          iPdfIndex += 1;
+                                          PaymentMDAndDepositMDAndFullNameModel
+                                              pPaymentDetail =
+                                              data[indexDetail];
+
+                                          //mTextController.text = mPaymentDetail.tlpayment_detail_actual_paid;
+                                          // Return a widget representing the item
+                                          return pw.Row(
+                                            mainAxisAlignment: pw
+                                                .MainAxisAlignment.spaceAround,
+                                            children: [
+                                              pw.SizedBox(
+                                                width: 20,
+                                              ),
+                                              pw.Expanded(
+                                                child: pw.SizedBox(
+                                                  child: pw.Align(
+                                                    alignment:
+                                                        pw.Alignment.centerLeft,
+                                                    child: pw.Text(
+                                                      '${pPaymentDetail.tlpayment_type} (${pPaymentDetail.tlpayment_type_detail})',
+                                                      style: pw.TextStyle(
+                                                          fontSize: 8),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              pw.SizedBox(
+                                                  width: 100,
+                                                  child: pw.Align(
+                                                    alignment: pw
+                                                        .Alignment.centerRight,
+                                                    child: pw.Padding(
+                                                      padding: const pw
+                                                          .EdgeInsets.only(
+                                                          right: 20.0),
+                                                      child: pw.Text(
+                                                        oCcy.format(double.parse(
+                                                            pPaymentDetail
+                                                                .tlpayment_detail_actual_paid)),
+                                                        style:
+                                                            const pw.TextStyle(
+                                                                fontSize: 8),
+                                                      ),
+                                                    ),
+                                                  )),
+                                            ],
+                                          );
+                                        }),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ])),
+                    ),
+                    pw.Container(
+                      decoration: pw.BoxDecoration(
+                          color: PdfColors.green300,
+                          borderRadius:
+                              pw.BorderRadius.all(pw.Radius.circular(8))),
+                      child: pw.Row(children: [
+                        pw.Expanded(
+                            child: pw.Align(
+                          alignment: pw.Alignment.centerLeft,
+                          child: pw.SizedBox(
+                              child: pw.Text('  สรุปยอด',
+                                  style: pw.TextStyle(
+                                    font: fontBold,
+                                    fontSize: 14,
+                                  ))),
+                        )),
+                        pw.SizedBox(
+                            child: pw.Align(
+                          alignment: pw.Alignment.centerRight,
+                          child: pw.Padding(
+                            padding: const pw.EdgeInsets.only(right: 20.0),
+                            child: pw.Text(
+                              'ยอดนำฝากจริง : ${oCcy.format(double.parse(depositActualController.text))}',
+                              style: pw.TextStyle(font: fontBold, fontSize: 12),
+                            ),
+                          ),
+                        )),
+                      ]),
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Row(children: [
+                      pw.SizedBox(
+                          width: 60,
+                          child: pw.Align(
+                            alignment: pw.Alignment.centerLeft,
+                            child: pw.Text(' หมายเหตุ : ',
+                                style: pw.TextStyle(
+                                  font: fontBold,
+                                  fontSize: 10,
+                                )),
+                          )),
+                      pw.Expanded(
+                        child: pw.Container(
+                          alignment: pw.Alignment.centerLeft,
+                          color: PdfColors.grey200,
+                          height: 20,
+                          child: pw.Text('   ${depositCommentController.text}',
+                              style: const pw.TextStyle(
+                                fontSize: 10,
+                              )),
+                        ),
+                      ),
+                    ]),
+
+                    pw.SizedBox(height: 4),
+
+                    //Footer
+                    pw.Expanded(
+                      flex: 1,
+                      child: pw.Container(
+                        height: 100,
+                        color: PdfColors.grey300,
+                        child: pw.Row(
+                            mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+                            children: [
+                              pw.Column(
+                                mainAxisAlignment: pw.MainAxisAlignment.end,
+                                children: [
+                                  pw.Text('_________________________________'),
+                                  pw.SizedBox(
+                                    height: 20,
+                                    child: pw.Text(
+                                        '( ${pLEmployee.first.emp_fullname} )'),
+                                  ),
+                                  pw.Text('( ผู้ปริ้นเอกสาร )'),
+                                ],
+                              ),
+                              pw.Column(
+                                mainAxisAlignment: pw.MainAxisAlignment.end,
+                                children: [
+                                  pw.Text('_________________________________'),
+                                  pw.SizedBox(height: 20),
+                                  pw.Text('( ผู้ตรวจสอบ )'),
+                                ],
+                              )
+                            ]),
+                      ),
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Container(
+                        alignment: pw.Alignment.centerRight,
+                        child: pw.Text('No. $printNumber',
+                            style: const pw.TextStyle(fontSize: 8))),
+                    pw.SizedBox(height: 8),
+                  ]),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class DailyByEmpForm extends StatelessWidget {
+  final pw.Document doc;
+  String pdfFileName;
+
+  DailyByEmpForm({Key? key, required this.doc, required this.pdfFileName})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(' Preview Document ')),
+      body: Container(
+        child: Center(
+          child: PdfPreview(
+            build: (format) => doc.save(),
+            allowSharing: true,
+            allowPrinting: true,
+            initialPageFormat: PdfPageFormat.a4,
+            pdfFileName: '${pdfFileName}.pdf',
+          ),
+        ),
+      ),
     );
   }
 }

@@ -6,13 +6,8 @@ class TlConstant {
   static const String syncApi =
       'https://e-cashier.thonglorpet.com/apiTLSmartCashier/';
 
-  static final String version = 'TL670205V015';
+  static final String version = 'TL670228V021';
   static final String token = 'epyTtnemyaPegnahCipa';
-
-  //r แก้ connect.php เป็น .5
-  //r แก้ API getDF Collection
-  //r แก้ version
-  //r แก้ syncApi to dfreport
 
   static String runID() => DateTime.now().millisecondsSinceEpoch.toString();
   static String random() => Random().nextInt(999).toString().padLeft(3, '0');

@@ -8,13 +8,21 @@ import 'package:thonglor_e_smart_cashier_web/models/receiptReview_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/sumRecReview_model.dart';
 
 import '../models/employee_model.dart';
+import '../models/paymentDetail_model.dart';
 import '../util/constant.dart';
 
 class ReviewRecPopup extends StatefulWidget {
+  List<PaymentDetailModel> lPaymentDetail;
   final String site;
   final String date;
+  final double dCheckTotalIncom;
 
-  const ReviewRecPopup({required this.site, required this.date, super.key});
+  ReviewRecPopup(
+      {required this.site,
+      required this.date,
+      required this.lPaymentDetail,
+      required this.dCheckTotalIncom,
+      super.key});
 
   @override
   State<ReviewRecPopup> createState() => _ReviewRecPopupState();
@@ -26,7 +34,9 @@ class _ReviewRecPopupState extends State<ReviewRecPopup> {
   bool isLoad = true;
 
   double dTotalPaid = 0.0;
+
   double dTotalPaidGo = 0.0;
+  double dDiff = 0.0;
   final oCcy = NumberFormat(
     "#,##0.00",
   );
@@ -42,6 +52,7 @@ class _ReviewRecPopupState extends State<ReviewRecPopup> {
       await loadPaymentMaster(widget.site, widget.date);
       await caliMedRec();
       await employeeFullName();
+      dDiff = widget.dCheckTotalIncom - dTotalPaid;
       setState(() {
         isLoad = false;
       });
@@ -82,7 +93,7 @@ class _ReviewRecPopupState extends State<ReviewRecPopup> {
             ],
           ),
         ),
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 8.0),
           child: Card(
             child: Padding(
@@ -90,7 +101,7 @@ class _ReviewRecPopupState extends State<ReviewRecPopup> {
               child: Row(
                   //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
+                    const Expanded(
                       child: SizedBox(
                         child: Text(
                           'ชื่อ',
@@ -98,19 +109,33 @@ class _ReviewRecPopupState extends State<ReviewRecPopup> {
                         ),
                       ),
                     ),
-                    SizedBox(
+                    const SizedBox(
                         width: 200,
                         child: Text('ยอดเงินสด', textAlign: TextAlign.center)),
-                    SizedBox(
+                    const SizedBox(
                         width: 200,
                         child: Text('ยอด OPD', textAlign: TextAlign.center)),
-                    SizedBox(
+                    const SizedBox(
                         width: 200,
                         child: Text('ยอด IPD', textAlign: TextAlign.center)),
                     SizedBox(
                         width: 200,
-                        child: Text('ยอดขาย', textAlign: TextAlign.center)),
+                        child: Text('ยอดขาย ปิดผลัด ',
+                            style: TextStyle(
+                                fontSize: 16, color: Colors.blue[900]),
+                            textAlign: TextAlign.center)),
                     SizedBox(
+                        width: 200,
+                        child: Text('ยอดขาย 6.10 ',
+                            style: TextStyle(
+                                fontSize: 16, color: Colors.blue[900]),
+                            textAlign: TextAlign.center)),
+                    const SizedBox(
+                        width: 200,
+                        child: Text('ส่วนต่าง ',
+                            style: TextStyle(fontSize: 16),
+                            textAlign: TextAlign.center)),
+                    const SizedBox(
                         width: 200,
                         child: Text('ยอดนำส่ง', textAlign: TextAlign.center)),
                   ]),
@@ -183,7 +208,45 @@ class _ReviewRecPopupState extends State<ReviewRecPopup> {
                                           SizedBox(
                                             width: 200,
                                             child: Text(
-                                                lSumRecReview[index].sumPaid,
+                                                oCcy.format(
+                                                    calculateTotalPayment(
+                                                        lSumRecReview[index]
+                                                            .emp)),
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.blue[900]),
+                                                textAlign: TextAlign.end),
+                                          ),
+                                          SizedBox(
+                                            width: 200,
+                                            child: Text(
+                                                oCcy.format(double.parse(
+                                                    lSumRecReview[index]
+                                                        .sumPaid)),
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.blue[900]),
+                                                textAlign: TextAlign.end),
+                                          ),
+                                          SizedBox(
+                                            width: 200,
+                                            child: Text(
+                                                oCcy.format(
+                                                    calculateTotalPayment(
+                                                            lSumRecReview[index]
+                                                                .emp) -
+                                                        double.parse(
+                                                            lSumRecReview[index]
+                                                                .sumPaid)),
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    color: calculateTotalPayment(
+                                                                    lSumRecReview[index]
+                                                                        .emp) -
+                                                                double.parse(lSumRecReview[index].sumPaid) ==
+                                                            0
+                                                        ? Colors.green
+                                                        : Colors.red),
                                                 textAlign: TextAlign.end),
                                           ),
                                           SizedBox(
@@ -351,9 +414,27 @@ class _ReviewRecPopupState extends State<ReviewRecPopup> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text('ยอดขาย : ${oCcy.format(dTotalPaid)}',
+                  //dCheckTotalIncom
+
+                  Text(
+                      'ยอดขาย ปิดผลัด : ${oCcy.format(widget.dCheckTotalIncom)}',
                       style: TextStyle(fontSize: 18)),
-                  SizedBox(
+                  const SizedBox(
+                    width: 100,
+                  ),
+                  Text('ยอดขาย รายงาน 6.10 : ${oCcy.format(dTotalPaid)}',
+                      style: TextStyle(fontSize: 18)),
+
+                  const SizedBox(
+                    width: 100,
+                  ),
+
+                  Text('ส่วนต่าง : ${oCcy.format(dDiff)}',
+                      style: TextStyle(
+                          fontSize: 18,
+                          color: dDiff == 0 ? Colors.green : Colors.red)),
+
+                  const SizedBox(
                     width: 100,
                   ),
                   Text('ยอดนำส่ง : ${oCcy.format(dTotalPaidGo)}',
@@ -407,6 +488,20 @@ class _ReviewRecPopupState extends State<ReviewRecPopup> {
         }
       }
     });
+  }
+
+  calculateTotalPayment(String empId) {
+    double dtotalAmount = 0;
+    final lPaymentByEmp = lPaymentMaster
+        .where((element) => element.tlpayment_rec_by == empId)
+        .toList();
+    for (var ee in lPaymentByEmp) {
+      if (ee.tlpayment_status == 'confirm' ||
+          ee.tlpayment_status == 'waiting') {
+        dtotalAmount += double.parse(ee.tlpayment_imed_total_income);
+      }
+    }
+    return dtotalAmount;
   }
 
   Future employeeFullName() async {
@@ -502,7 +597,7 @@ class _ReviewRecPopupState extends State<ReviewRecPopup> {
         emp: emp,
         sumOpd: oCcy.format(dOpd),
         sumIpd: oCcy.format(dIpd),
-        sumPaid: oCcy.format(dPaid),
+        sumPaid: dPaid.toString(),
         sumPaidGo: oCcy.format(dPaidGo),
         sumCash: oCcy.format(dCash),
         detailSumCash: '${oCcy.format(dCashRec)} - ${oCcy.format(dCashRePay)}',

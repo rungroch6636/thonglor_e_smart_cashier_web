@@ -16,6 +16,7 @@ class PaymentImageScreen extends StatefulWidget {
   String paymentId;
   String isStatusScreen;
   Function callbackFunctions;
+  Function callbackComment;
   Function callbackRemove;
 
   PaymentImageScreen(
@@ -25,6 +26,7 @@ class PaymentImageScreen extends StatefulWidget {
       required this.paymentId,
       required this.isStatusScreen,
       required this.callbackFunctions,
+      required this.callbackComment,
       required this.callbackRemove,
       super.key});
 
@@ -153,36 +155,28 @@ class _PaymentImageScreenState extends State<PaymentImageScreen> {
                                                                           .all(
                                                                           16.0),
                                                                   child:
-                                                                      Container(
-                                                                    color: widget.isStatusScreen ==
-                                                                                'waiting' ||
-                                                                            widget.isStatusScreen ==
-                                                                                'confirm'
-                                                                        ? Colors
-                                                                            .grey[300]
-                                                                        : null,
-                                                                    child:
-                                                                        TextFormField(
-                                                                      readOnly: widget.isStatusScreen == 'waiting' ||
-                                                                              widget.isStatusScreen == 'confirm'
-                                                                          ? true
-                                                                          : false,
-                                                                      autofocus:
-                                                                          true,
-                                                                      decoration:
-                                                                          const InputDecoration(
-                                                                              labelText: "Comment"),
-                                                                      controller:
-                                                                          lImageControllers[
-                                                                              index],
-                                                                      onChanged:
-                                                                          (value) {
-                                                                        lPaymentImage[index]
-                                                                            .tlpayment_image_description = lImageControllers[
-                                                                                index]
-                                                                            .text;
-                                                                      },
-                                                                    ),
+                                                                      TextFormField(
+                                                                    readOnly:
+                                                                        false,
+                                                                    autofocus:
+                                                                        true,
+                                                                    decoration: const InputDecoration(
+                                                                        labelText:
+                                                                            "Comment"),
+                                                                    controller:
+                                                                        lImageControllers[
+                                                                            index],
+                                                                    onChanged:
+                                                                        (value) {
+                                                                      lPaymentImage[
+                                                                              index]
+                                                                          .tlpayment_image_description = lImageControllers[
+                                                                              index]
+                                                                          .text;
+                                                                      widget
+                                                                          .callbackComment(  lPaymentImage[
+                                                                              index]);
+                                                                    },
                                                                   ),
                                                                 ),
                                                                 Expanded(
@@ -328,31 +322,21 @@ class _PaymentImageScreenState extends State<PaymentImageScreen> {
                                       Padding(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 4, vertical: 2),
-                                        child: Container(
-                                            color: widget.isStatusScreen ==
-                                                        'waiting' ||
-                                                    widget.isStatusScreen ==
-                                                        'confirm'
-                                                ? Colors.grey[300]
-                                                : Colors.transparent,
-                                            child: TextFormField(
-                                              readOnly: widget.isStatusScreen ==
-                                                          'waiting' ||
-                                                      widget.isStatusScreen ==
-                                                          'confirm'
-                                                  ? true
-                                                  : false, // 'New'  'create' 'reject'
-                                              decoration: const InputDecoration(
-                                                  labelText: "Comment"),
-                                              controller:
-                                                  lImageControllers[index],
-                                              onChanged: (value) {
-                                                lPaymentImage[index]
-                                                        .tlpayment_image_description =
-                                                    lImageControllers[index]
-                                                        .text;
-                                              },
-                                            )),
+                                        child: TextFormField(
+                                          readOnly:
+                                              false, // 'New'  'create' 'reject'
+                                          decoration: const InputDecoration(
+                                              labelText: "Comment"),
+                                          controller: lImageControllers[index],
+                                          onChanged: (value) {
+                                            lPaymentImage[index]
+                                                    .tlpayment_image_description =
+                                                lImageControllers[index].text;
+
+                                            widget.callbackComment(lPaymentImage[
+                                                                              index]);
+                                          },
+                                        ),
                                       )
                                     ],
                                   ),
@@ -368,26 +352,19 @@ class _PaymentImageScreenState extends State<PaymentImageScreen> {
                       onHover: (value) {
                         setState(() => isHover = value);
                       },
-                      style: widget.isStatusScreen == 'waiting' ||
-                              widget.isStatusScreen == 'confirm'
-                          ? ElevatedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              backgroundColor: Colors.grey[600],
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(50)))
-                          : ElevatedButton.styleFrom(
-                              foregroundColor: isCheckRun
-                                  ? null
-                                  : isHover
-                                      ? Colors.green[900]
-                                      : Colors.green,
-                              backgroundColor: isCheckRun
-                                  ? Colors.grey[600]
-                                  : isHover
-                                      ? Colors.green[100]
-                                      : Colors.white,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(50))),
+                      style: ElevatedButton.styleFrom(
+                          foregroundColor: isCheckRun
+                              ? null
+                              : isHover
+                                  ? Colors.green[900]
+                                  : Colors.green,
+                          backgroundColor: isCheckRun
+                              ? Colors.grey[600]
+                              : isHover
+                                  ? Colors.green[100]
+                                  : Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50))),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: isCheckRun
@@ -395,19 +372,15 @@ class _PaymentImageScreenState extends State<PaymentImageScreen> {
                             : const Center(child: Text(' Upload ')),
                       ),
                       onPressed: () async {
-                        if (widget.isStatusScreen == 'New' ||
-                            widget.isStatusScreen == 'create' ||
-                            widget.isStatusScreen == 'reject') {
-                          if (isCheckRun == false) {
-                            upload_pdf();
-                            setState(() {
-                              isCheckRun = true;
-                            });
+                        if (isCheckRun == false) {
+                          upload_pdf();
+                          setState(() {
+                            isCheckRun = true;
+                          });
 
-                            setState(() {
-                              isCheckRun = false;
-                            });
-                          }
+                          setState(() {
+                            isCheckRun = false;
+                          });
                         }
                       },
                     ),
@@ -443,20 +416,20 @@ class _PaymentImageScreenState extends State<PaymentImageScreen> {
           String id = '$runNum${i.toString().padLeft(3, '0')}';
           String base64string = base64.encode(_paths![i].bytes!);
 
-            PaymentDetailImageTempModel newImage = PaymentDetailImageTempModel(
-                tlpayment_detail_image_id: id,
-                tlpayment_detail_id: widget.paymentDetailId,
-                tlpayment_image_base64: base64string,
-                tlpayment_image_last_Name: imgLastName,
-                tlpayment_image_description: '',
-                tlpayment_id: widget.paymentId);
+          PaymentDetailImageTempModel newImage = PaymentDetailImageTempModel(
+              tlpayment_detail_image_id: id,
+              tlpayment_detail_id: widget.paymentDetailId,
+              tlpayment_image_base64: base64string,
+              tlpayment_image_last_Name: imgLastName,
+              tlpayment_image_description: '',
+              tlpayment_id: widget.paymentId);
 
-            lPaymentImage.add(newImage);
-            lImageControllers.add(TextEditingController());
-            lImageControllers[i].text =
-                lPaymentImage[i].tlpayment_image_description;
+          lPaymentImage.add(newImage);
+          lImageControllers.add(TextEditingController());
+          lImageControllers[i].text =
+              lPaymentImage[i].tlpayment_image_description;
         }
-     
+
         widget.callbackFunctions(lPaymentImage);
         setState(() {});
       }

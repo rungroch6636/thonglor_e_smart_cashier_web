@@ -606,6 +606,7 @@ class _CheckPaymentSingleScreenState extends State<CheckPaymentSingleScreen> {
 
                                                                                                                 setState(() {});
                                                                                                               },
+                                                                                                              callbackComment: (p1){},
                                                                                                             ));
                                                                                                       });
                                                                                                 },

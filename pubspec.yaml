@@ -37,6 +37,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_image_compress: ^2.1.0
+  flutter_switch: ^0.3.2
   google_fonts: ^4.0.4
   icons_launcher: ^2.1.7
   just_the_tooltip: ^0.0.12

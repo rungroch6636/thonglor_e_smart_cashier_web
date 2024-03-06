@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:thonglor_e_smart_cashier_web/models/employee_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/paymentApproval_model.dart';
 import 'package:thonglor_e_smart_cashier_web/screens/check_deposit_screen.dart';
+import 'package:thonglor_e_smart_cashier_web/screens/check_financial_screen.dart';
 import 'package:thonglor_e_smart_cashier_web/screens/check_payment_screen.dart';
 import 'package:thonglor_e_smart_cashier_web/screens/deposit_screen.dart';
 import 'package:thonglor_e_smart_cashier_web/screens/exam_screen.dart';
@@ -140,7 +141,10 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                     SizedBox(
                                         child: position == 'ผู้จัดการ' ||
                                                 position == 'รองผู้จัดการ' ||
-                                                position == 'หัวหน้าหน่วย'
+                                                position == 'หัวหน้าหน่วย' ||
+                                                position == 'FIN' ||
+                                                position == 'ACC' ||
+                                                position == 'IT'
                                             ? //||position == 'เจ้าหน้าที่ไอที'?
 
                                             Tooltip(
@@ -164,7 +168,10 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                     SizedBox(
                                         child: position == 'ผู้จัดการ' ||
                                                 position == 'รองผู้จัดการ' ||
-                                                position == 'หัวหน้าหน่วย'
+                                                position == 'หัวหน้าหน่วย' ||
+                                                position == 'FIN' ||
+                                                position == 'ACC' ||
+                                                position == 'IT'
                                             ? Tooltip(
                                                 message: 'นำฝาก',
                                                 child: IconButton(
@@ -183,8 +190,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                               )
                                             : null),
                                     SizedBox(
-                                        child: 
-                                        position == 'FIN' 
+                                        child: position == 'FIN' ||
+                                                position == 'ACC' ||
+                                                position == 'IT'
                                             ? Tooltip(
                                                 message: 'ตรวจสอบเงินนำฝาก',
                                                 child: IconButton(
@@ -205,7 +213,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                               )
                                             : null),
                                     SizedBox(
-                                        child: position == 'ACC'
+                                        child: position == 'ACC' ||
+                                                position == 'IT'
                                             ? Tooltip(
                                                 message:
                                                     'ตรวจสอบรายงาน ณ สิ้นวัน',
@@ -255,9 +264,10 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                           lEmp: widget.lEmp, // lEmpPeeOill,
                                         )
                                       : isSwitchMenu == '3'
-                                          ? CheckDepositScreen(
-                                              lEmp: widget.lEmp, // lEmpPeeOill,
-                                            )
+                                          ?  CheckFinancialScreen(
+                                            lEmp: widget.lEmp,
+                                            callbackUpdate: (){},
+                                          )
                                           : isSwitchMenu == '4'
                                               ? CheckPaymentScreen(
                                                   lEmp: widget

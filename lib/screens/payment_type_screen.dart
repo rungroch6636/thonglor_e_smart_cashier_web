@@ -410,11 +410,15 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                                                               lPaymentImageDBByType: lPaymentImageDB.where((e) => e.tlpayment_detail_id == mPaymentDetail.tlpayment_detail_id).toList(),
                                                                                                               paymentDetailId: mPaymentDetail.tlpayment_detail_id,
                                                                                                               paymentId: paymentId,
-                                                                                                              callbackFunctions: (p0) {
+                                                                                                              callbackFunctions: (p0) async {
                                                                                                                 for (var ee in p0) {
                                                                                                                   var isCheckImage = lPaymentImage.where((e0) => e0.tlpayment_detail_image_id == ee.tlpayment_detail_image_id).toList();
                                                                                                                   if (isCheckImage.isEmpty) {
                                                                                                                     lPaymentImage.add(ee);
+                                                                                                                    if (isStatusScreen == 'waiting' || isStatusScreen == 'confirm') {
+                                                                                                                      await createPaymentDetailImageDBByModel(ee);
+                                                                                                                      await createPaymentDetailImageFolderByModel(ee);
+                                                                                                                    }
                                                                                                                   }
                                                                                                                 }
                                                                                                                 setState(() {
@@ -428,6 +432,12 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                                                                 setState(() {
                                                                                                                   isSend = false;
                                                                                                                 });
+                                                                                                              },
+                                                                                                              callbackComment: (p1) async {
+                                                                                                                if (isStatusScreen == 'waiting' || isStatusScreen == 'confirm') {
+                                                                                                                  lPaymentImage.where((element) => element.tlpayment_detail_image_id == p1.tlpayment_detail_image_id).first.tlpayment_image_description = p1.tlpayment_image_description;
+                                                                                                                  await updatePaymentDetailImage(p1.tlpayment_detail_image_id);
+                                                                                                                }
                                                                                                               },
                                                                                                             ));
                                                                                                       });
@@ -1473,8 +1483,6 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                                                                                 empid: widget.lEmp.first.employee_id,
                                                                                 siteId: widget.lEmp.first.site_id,
                                                                                 callbackUpdate: () async {
-                                                                                  // await updatePayment(
-                                                                                  //     paymentId);
                                                                                   await updatePaymentStatus(paymentId);
                                                                                 },
                                                                                 callbackClear: () {
@@ -2127,7 +2135,7 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
           dTotalBalance += double.parse(newPD.tlpayment_detail_diff_paid);
           dTotalIncome += double.parse(newPD.paid);
         }
-        //groupName = groupPaymentDeposit(lPaymentDetail);
+        groupName = groupPaymentDeposit(lPaymentDetail);
       }
     });
   }
@@ -2167,8 +2175,6 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                   e.tlpayment_id == paymentId &&
                   e.tlpayment_type_id == lReceiptImed[i].paid_method_func &&
                   e.tlpayment_type == lReceiptImed[i].paid_method_th &&
-                  e.tlpayment_type_detail_id ==
-                      lReceiptImed[i].c_num.toString() &&
                   e.tlpayment_type_detail == lReceiptImed[i].paid_method_sub_th)
               .toList();
           //! opd_paid
@@ -2218,16 +2224,17 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
               double.parse(upPD.first.paid_go).toStringAsFixed(2);
 
           lPaymentDetail
-                  .where((eee) =>
-                      eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
-                  .first
-                  .tlpayment_detail_diff_paid =
-              double.parse(upPD.first.tlpayment_detail_diff_paid)
-                  .toStringAsFixed(2);
+              .where((eee) =>
+                  eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
+              .first
+              .tlpayment_detail_diff_paid = '0.0';
+          // double.parse(upPD.first.tlpayment_detail_diff_paid)
+          //     .toStringAsFixed(2);
 
           dTotalPaid += double.parse(upPD.first.paid_go);
           dTotalActual += dActual;
-          dTotalBalance += double.parse(upPD.first.tlpayment_detail_diff_paid);
+          dTotalBalance =
+              0.0; //double.parse(upPD.first.tlpayment_detail_diff_paid);
           dTotalIncome += double.parse(upPD.first.paid);
         }
         groupName = ''; //groupPaymentDeposit(lPaymentDetail);

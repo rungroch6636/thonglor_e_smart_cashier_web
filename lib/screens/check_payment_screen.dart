@@ -129,7 +129,8 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
 
   String checkTypeDate = '';
 
-  List<ReceiptModel> lReceiptImed = [];
+  List<ReceiptModel> lReceiptImedCheckUpdate = [];
+  List<PaymentDetailModel> lPaymentDetailCheckUpdate = [];
 
   List<double> lBalance = [];
   List<bool> lAddImage = [];
@@ -138,6 +139,7 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
     "#,##0.00",
   );
   double dTotalIncome = 0;
+  double dCheckTotalIncom = 0;
   double dTotalPaid = 0;
   double dTotalActual = 0;
   double dTotalBalance = 0;
@@ -252,10 +254,13 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                                                                             .all(
                                                                             16.0),
                                                                         child: ReviewRecPopup(
+                                                                            lPaymentDetail:
+                                                                                lPaymentDetail,
                                                                             site:
                                                                                 siteToAddPaymentType,
                                                                             date:
-                                                                                dateRec),
+                                                                                dateRec,
+                                                                            dCheckTotalIncom: dCheckTotalIncom),
                                                                       ),
                                                                     ),
                                                                     const Expanded(
@@ -526,8 +531,10 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                                                                               .all(
                                                                               16.0),
                                                                           child: ReviewRecPopup(
+                                                                              lPaymentDetail: lPaymentDetail,
                                                                               site: siteToAddPaymentType,
-                                                                              date: dateRec),
+                                                                              date: dateRec,
+                                                                              dCheckTotalIncom: dCheckTotalIncom),
                                                                         ),
                                                                       ),
                                                                       const Expanded(
@@ -614,9 +621,6 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                                                                             itemCount: data.length,
                                                                             itemBuilder: (BuildContext context, int indexDetail) {
                                                                               PaymentDetailModel mPaymentDetail = data[indexDetail];
-
-                                                                              //mTextController.text = mPaymentDetail.tlpayment_detail_actual_paid;
-                                                                              // Return a widget representing the item
                                                                               return SizedBox(
                                                                                 height: 32,
                                                                                 child: Row(
@@ -878,8 +882,28 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                                                                                                             lPaymentImageDBByType: lPaymentImageDB.where((e) => e.tlpayment_detail_id == mPaymentDetail.tlpayment_detail_id).toList(),
                                                                                                             paymentDetailId: mPaymentDetail.tlpayment_detail_id,
                                                                                                             paymentId: paymentId,
-                                                                                                            callbackFunctions: (p0) {},
+                                                                                                            callbackFunctions: (p0) async {
+                                                                                                                 for (var ee in p0) {
+                                                                                                                  var isCheckImage = lPaymentImage.where((e0) => e0.tlpayment_detail_image_id == ee.tlpayment_detail_image_id).toList();
+                                                                                                                  if (isCheckImage.isEmpty) {
+                                                                                                                    lPaymentImage.add(ee);
+                                                                                                                    if (isStatusScreen == 'waiting' || isStatusScreen == 'confirm') {
+                                                                                                                      await createPaymentDetailImageDBByModel(ee);
+                                                                                                                      await createPaymentDetailImageFolderByModel(ee);
+                                                                                                                    }
+                                                                                                                  }
+                                                                                                                }
+                                                                                                                setState(() {
+                                                                                                              
+                                                                                                                });
+                                                                                                            },
                                                                                                             callbackRemove: (ImageReId) {},
+                                                                                                            callbackComment: (p1) async {
+                                                                                                                 if (isStatusScreen == 'waiting' || isStatusScreen == 'confirm') {
+                                                                                                                  lPaymentImage.where((element) => element.tlpayment_detail_image_id == p1.tlpayment_detail_image_id).first.tlpayment_image_description = p1.tlpayment_image_description;
+                                                                                                                  await updatePaymentDetailImage(p1.tlpayment_detail_image_id);
+                                                                                                                }
+                                                                                                            },
                                                                                                           ));
                                                                                                     });
                                                                                               },
@@ -1521,6 +1545,7 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
                                   siteDDValue, dateRec);
 //!total
                               await sumPaymentMasterAll();
+                              dCheckTotalIncom = dTotalIncome;
                               //! PaymentDetail
                               await loadPaymentDetailAll();
                               //!PaymentDetailShowAll
@@ -1683,6 +1708,70 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
     return emp_fullname;
   }
 
+/*  */
+
+  Future loadPaymentImed(
+      String paymentId, emp_id, site_id, date, startTime, endTime) async {
+    lReceiptImedCheckUpdate = [];
+    lPaymentDetailCheckUpdate = [];
+
+    siteToAddPaymentType = site_id;
+    FormData formData = FormData.fromMap({
+      "token": TlConstant.token,
+      "emp_id": emp_id,
+      "site_id": site_id,
+      "date_": date,
+      "startTime": startTime,
+      "endTime": endTime
+    });
+    String api = '${TlConstant.syncApi}receipt.php?id=imedRec';
+
+    await Dio().post(api, data: formData).then((value) {
+      if (value.data == null) {
+        print('Receipt Imed Null !');
+      } else {
+        for (var receipt in value.data) {
+          ReceiptModel newRec = ReceiptModel.fromMap(receipt);
+          lReceiptImedCheckUpdate.add(newRec);
+        }
+        for (var i = 0; i < lReceiptImedCheckUpdate.length; i++) {
+          PaymentDetailModel newPD = PaymentDetailModel(
+              tlpayment_detail_id: 'xxx',
+              tlpayment_id: paymentId,
+              tlpayment_type_id:
+                  lReceiptImedCheckUpdate[i].paid_method_func.toString(),
+              tlpayment_type:
+                  lReceiptImedCheckUpdate[i].paid_method_th.toString(),
+              tlpayment_type_detail:
+                  lReceiptImedCheckUpdate[i].paid_method_sub_th.toString(),
+              tlpayment_type_detail_id:
+                  lReceiptImedCheckUpdate[i].c_num.toString(),
+              opd_paid:
+                  double.parse(lReceiptImedCheckUpdate[i].opd_paid.toString())
+                      .toStringAsFixed(2),
+              ipd_paid:
+                  double.parse(lReceiptImedCheckUpdate[i].ipd_paid.toString())
+                      .toStringAsFixed(2),
+              paid: double.parse(lReceiptImedCheckUpdate[i].paid.toString())
+                  .toStringAsFixed(2),
+              paid_go:
+                  double.parse(lReceiptImedCheckUpdate[i].paid_go.toString())
+                      .toStringAsFixed(2),
+              prpdsp: lReceiptImedCheckUpdate[i].grpdsp.toString(),
+              tlpayment_detail_site_id: siteToAddPaymentType,
+              tlpayment_detail_actual_paid:
+                  double.parse(lReceiptImedCheckUpdate[i].paid_go.toString())
+                      .toStringAsFixed(2),
+              tlpayment_detail_diff_paid: '0',
+              tlpayment_detail_comment: '');
+
+          lPaymentDetailCheckUpdate.add(newPD);
+        }
+      }
+    });
+  }
+
+/* */
   Future loadPaymentMasterCheck(String siteDDValue, String dateRec) async {
     lPaymentMaster = [];
 
@@ -1697,7 +1786,7 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
       "date_receipt": dateRec
     });
     String api = '${TlConstant.syncApi}tlPayment.php?id=checkPayment';
-//! จะไม่มี fullname
+    //! จะไม่มี fullname
 
     await Dio().post(api, data: formData).then((value) async {
       if (value.data == null) {
@@ -1729,6 +1818,14 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
               tlpayment_approval_id: ee.tlpayment_approval_id);
 
           lPaymentMaster.add(newPaymentFullName);
+
+          await loadPaymentImed(
+              ee.tlpayment_id,
+              ee.tlpayment_rec_by,
+              ee.tlpayment_rec_site,
+              ee.tlpayment_rec_date,
+              ee.tlpayment_rec_time_from,
+              ee.tlpayment_rec_time_to);
         }
 
         PaymentEmpFullNameModel newPaymentALL = PaymentEmpFullNameModel(
@@ -2042,8 +2139,57 @@ class _CheckPaymentScreenState extends State<CheckPaymentScreen> {
     await Dio().post(api, data: formData);
   }
 
+Future createPaymentDetailImageDBByModel(
+      PaymentDetailImageTempModel img) async {
+    if (img.tlpayment_image_base64.isNotEmpty) {
+      var image_path =
+          '${TlConstant.syncApi}UploadImages/PaymentType/${widget.lEmp.first.employee_id}/$dateRec/$siteToAddPaymentType/${img.tlpayment_detail_id}/${img.tlpayment_detail_image_id}.${img.tlpayment_image_last_Name}';
+      //! ToDB
+      FormData formData = FormData.fromMap({
+        "token": TlConstant.token,
+        "tlpayment_detail_image_id": img.tlpayment_detail_image_id,
+        "tlpayment_detail_id": img.tlpayment_detail_id,
+        "tlpayment_image_path": image_path,
+        "tlpayment_image_description": img.tlpayment_image_description,
+        "tlpayment_id": img.tlpayment_id,
+      });
+
+      String api = '${TlConstant.syncApi}tlPaymentDetailImage.php?id=create';
+      await Dio().post(api, data: formData);
+    }
+  }
+  
+  
+  Future createPaymentDetailImageFolderByModel(
+      PaymentDetailImageTempModel img) async {
+    //!upload/Name/Date/Site/type_id/iMageName= type_id_ImageId
+    FormData formDataImg = FormData.fromMap({
+      "base64data": img.tlpayment_image_base64,
+      "typeFolder": 'PaymentType',
+      "name": widget.lEmp.first.employee_id,
+      "date": dateRec,
+      "site": siteToAddPaymentType,
+      "type_id": img.tlpayment_detail_id,
+      "lastname": img.tlpayment_image_last_Name,
+      "imageId": img.tlpayment_detail_image_id,
+    });
+    await Dio().post('${TlConstant.syncApi}uploadFile.php', data: formDataImg);
+  }
+
+
   //! ถ้ามีการ Reject ระบบ จะตัดคนนั้นออกไป
   //! ------------------Update------------------
+    Future updatePaymentDetailImage(String id) async {
+    String description = lPaymentImage
+        .where((e) => e.tlpayment_detail_image_id == id)
+        .first
+        .tlpayment_image_description;
+    FormData formData = FormData.fromMap(
+        {"token": TlConstant.token, "id": id, "description": description});
+    String api = '${TlConstant.syncApi}tlPaymentDetailImage.php?id=update';
+    await Dio().post(api, data: formData);
+  }
+  
   Future updatePayment(
       String id, double dEditTotalActual, double dEditTotalBalance) async {
     String tAct = dEditTotalActual.toStringAsFixed(2);
