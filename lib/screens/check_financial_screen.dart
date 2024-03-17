@@ -1,37 +1,31 @@
-import 'package:action_slider/action_slider.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:intl/intl.dart';
 import 'package:just_the_tooltip/just_the_tooltip.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:thonglor_e_smart_cashier_web/models/financialDepositAndDetail_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/financialDetail_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/financialMenu_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/financialPaymentAndDetail_model.dart';
-import 'package:thonglor_e_smart_cashier_web/models/financialSummary_model.dart';
+import 'package:thonglor_e_smart_cashier_web/models/financialGroup_model.dart';
 import 'package:thonglor_e_smart_cashier_web/models/financialType_model.dart';
+import 'package:thonglor_e_smart_cashier_web/models/financial_model.dart';
 import 'package:thonglor_e_smart_cashier_web/screens/add_payment_type_financial_screen.dart';
-import 'package:thonglor_e_smart_cashier_web/screens/add_payment_type_screen.dart';
 import 'package:thonglor_e_smart_cashier_web/screens/deposit_image_screen.dart';
 import 'package:thonglor_e_smart_cashier_web/screens/payment_image_screen.dart';
 import 'package:thonglor_e_smart_cashier_web/util/constant.dart';
 import 'package:collection/collection.dart';
 
 import '../models/choicePayment_model.dart';
-
 import '../models/depositImageTemp_model.dart';
 import '../models/depositImage_model.dart';
-import '../models/deposit_model.dart';
 import '../models/employee_model.dart';
 import '../models/financialTypeAndCom_model.dart';
 import '../models/paymentDetailImageTemp_model.dart';
 import '../models/paymentDetailImage_model.dart';
 import '../models/paymentDetailRemark_model.dart';
-import '../models/paymentDetail_model.dart';
 import '../models/payment_empFullName_model.dart';
-import '../models/payment_model.dart';
 import '../models/receiptReview_model.dart';
 import '../models/site_model.dart';
 import '../widgets/remarkPopup.dart';
@@ -63,8 +57,11 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
   List<FinancialPaymentAndDetailModel> lFinPaymentAndDetail = [];
   List<FinancialDepositAndDetailModel> lFinDepositAndDetail = [];
 
-  List<FinancialMenuModel> lFinLeftMenu = [];
+  List<FinancialModel> lFin = [];
   String financialId = '';
+  String financialStatus = '';
+
+  List<FinancialMenuModel> lFinLeftMenu = [];
   String finLeftMenuRecBy = 'ALL';
   String finLeftMenuId = '';
   String finLeftMenuStatus = '';
@@ -73,7 +70,7 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
   List<FinancialTypeModel> lFinType = [];
   List<FinancialDetailModel> lFinDetail = [];
   var groupFinTypeId;
-  List<FinancialSummaryModel> lFinSummary = [];
+  List<FinancialGroupModel> lFinGroup = [];
 
   List<PaymentDetailImageTempModel> lPaymentImage = [];
   List<PaymentDetailImageModel> lPaymentImageDB = [];
@@ -83,8 +80,7 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
 
   TextEditingController finCommentController = TextEditingController();
 
-  List<String> lFinancial = []; // คือ เมื่อมีการรวมแล้ว
-  bool isLoadFinancialSummary = false;
+  bool isLoadFinancialGroup = false;
   bool isLoadFinancialDetail = false;
 
   List<DepositImageTempModel> lDepositImage = [];
@@ -231,37 +227,80 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                       dTotalPaidGo = 0.0;
                       dTotalRecActual = 0.0;
                       dTotalDiffRec = 0.0;
-
+                      dTotalFinDetailActual = 0.0;
+                      lFin = [];
                       lFinLeftMenu = [];
                       lFinDetail = [];
-                      lFinSummary = [];
-
+                      lFinGroup = [];
+                      finCommentController.clear();
                       setState(() {
                         runProcess = 'LoadData';
                         isCheckBtnLoadData = true;
                       });
-/////********************************************************************* */
-                      await loadFinancialMenu(recSite, recDate);
-/////********************************************************************* */
+                      //  ✔
+                      // ❌
 
-                      if (lFinLeftMenu.isEmpty) {
-                        financialId = '${TlConstant.runID()}000';
-                        await loadiMedRecReview(recSite, recDate);
-                        //! load Payment Status Confirm
-                        await loadPaymentMasterCheck(recSite, recDate);
-                        //!
-                        await loadDepositAndDetail(recSite, recDate);
+                      await loadFin(recSite, recDate);
+                      await loadDepositAndDetail(recSite, recDate);
+                      await loadPaymentMasterBuildImage(recSite, recDate);
+                      await loadPaymentDetailAll(recSite, recDate);
+                      await loadDepositImageDB();
+                      await loadPaymentDetailImageAll();
+                      await loadPaymentDetailRemarkAll();
 
-                        await loadPaymentDetailAll(recSite, recDate);
-                        await loadDepositImageDB();
-                        await loadPaymentDetailImageAll();
-                        await loadPaymentDetailRemarkAll();
+                      print(lFin);
+                      if (lFin.isNotEmpty) {
+                        //1 มี fin ✔ finMenu ✔ finDetail ✔  finGroup ✔
 
-                        //!** FinancialDetail
-                        await buildPaymentToFinancialDetailAll();
-                        await buildDepositToFinancialDetailAll();
+                        financialStatus = lFin.first.tlfinancial_status;
+                        finCommentController.text =
+                            lFin.first.tlfinancial_comment;
+                        financialId = lFin.first.tlfinancial_id;
+                        finLeftMenuStatus = 'confirm';
 
-                        if (lRecReview.isNotEmpty) {
+                        dTotalPaidGo =
+                            double.parse(lFin.first.tlfin_payment_paid_go);
+                        dTotalRecActual =
+                            double.parse(lFin.first.tlfin_payment_paid_actual);
+                        dTotalDiffRec = dTotalPaidGo - dTotalRecActual;
+                        dTotalFinDetailActual =
+                            double.parse(lFin.first.tlfinancial_actual);
+
+                        dTotalDiffFinDetail =
+                            dTotalFinDetailActual - dTotalRecActual;
+
+                        await loadFinMenu(recSite, recDate);
+                        await loadFinDetailByFinId(financialId);
+
+                        lFinDetail.sort((a, b) => a.tlfinancial_type_number
+                            .compareTo(b.tlfinancial_type_number));
+                        groupFinTypeId = groupFinancialDetail(lFinDetail);
+
+                        //!*--FinancialGroup
+                        await buildFinancialGroup();
+                        lFinGroup.sort(
+                          (a, b) => a.tlfinancial_type_number
+                              .compareTo(b.tlfinancial_type_number),
+                        );
+
+                        //!* -----------------
+                      } else {
+                        financialStatus = 'new'; // 'success'; //
+                        await loadFinMenu(recSite, recDate);
+
+                        if (lFinLeftMenu.isNotEmpty) {
+                          //2 มี fin ❌ finMenu ✔ finDetail ✔❌(มีไม่ครบ)  finGroup ❌
+                          financialId = lFinLeftMenu
+                              .where((element) => element.rec_by != 'ALL')
+                              .first
+                              .tlfinancial_id;
+                          //await loadPaymentMasterCheck(recSite, recDate);
+
+                          await loadFinDetailByFinId(financialId);
+                          //!** FinancialDetail
+                          await buildPaymentToFinancialDetailAll();
+                          await buildDepositToFinancialDetailAll();
+
                           dTotalPaidGo = double.parse(lFinLeftMenu
                               .where((element) =>
                                   element.rec_by == finLeftMenuRecBy)
@@ -282,85 +321,73 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                               .compareTo(b.tlfinancial_type_number));
                           groupFinTypeId = groupFinancialDetail(lFinDetail);
                           //!* -----------------
-                          //!** FinancialSummary
-                          await buildFinancialSummary();
-                          lFinSummary.sort(
+                          //!** FinancialGroup
+                          await buildFinancialGroup();
+                          lFinGroup.sort(
                             (a, b) => a.tlfinancial_type_number
                                 .compareTo(b.tlfinancial_type_number),
                           );
                           //!* -----------------
-
-                          await createFinancialMenu();
-                        }
-                      } else {
-                        financialId = lFinLeftMenu
-                            .where((element) => element.rec_by != 'ALL')
-                            .first
-                            .tlfinancial_id;
-                        //await loadPaymentMasterCheck(recSite, recDate);
-                        //!
-
-                        await loadFinDetailByFinId(financialId);
-                        for (var finMenu in lFinLeftMenu) {
-                    
-                        int isCheckFinDetail 
-                        
-                        =   lFinDetail
-                              .where((element) =>
-                                  element.tlpayment_rec_by == finMenu.rec_by)
-                              .length;
-
-                        if(isCheckFinDetail == 0){
-
-                        }
-                        }
-
-                        await loadDepositAndDetail(recSite, recDate);
-                        await loadPaymentDetailAll(recSite, recDate);
-                        await loadDepositImageDB();
-                        await loadPaymentDetailImageAll();
-                        await loadPaymentDetailRemarkAll();
-
-                        //!** FinancialDetail
-                        await buildPaymentToFinancialDetailAll();
-                        await buildDepositToFinancialDetailAll();
-
-                        dTotalPaidGo = double.parse(lFinLeftMenu
-                            .where(
-                                (element) => element.rec_by == finLeftMenuRecBy)
-                            .first
-                            .tlpayment_sum_paid_go);
-                        dTotalRecActual = double.parse(lFinLeftMenu
-                            .where(
-                                (element) => element.rec_by == finLeftMenuRecBy)
-                            .first
-                            .tlpayment_sum_actual);
-
-                        dTotalDiffRec = dTotalRecActual - dTotalPaidGo;
-
-                        dTotalDiffFinDetail =
-                            dTotalFinDetailActual - dTotalRecActual;
-
-                        lFinDetail.sort((a, b) => a.tlfinancial_type_number
-                            .compareTo(b.tlfinancial_type_number));
-                        groupFinTypeId = groupFinancialDetail(lFinDetail);
-                        //!* -----------------
-                        //!** FinancialSummary
-                        await buildFinancialSummary();
-                        lFinSummary.sort(
-                          (a, b) => a.tlfinancial_type_number
-                              .compareTo(b.tlfinancial_type_number),
-                        );
-                        //!* -----------------
-                      }
-                      isCheckALLApprove = true;
-                      finLeftMenuStatus = 'confirm';
-                      for (var ee in lFinLeftMenu) {
-                        if (ee.rec_by == 'ALL') {
                         } else {
-                          if (ee.tlfinancial_menu_status != 'confirm') {
-                            isCheckALLApprove = false;
-                            finLeftMenuStatus = 'create';
+                          //3 มี fin ❌ finMenu❌ finDetail ❌ finGroup ❌
+                          //!------------------
+                          financialId = '${TlConstant.runID()}000';
+                          await loadiMedRecReview(recSite, recDate);
+                          //! load Payment Status Confirm
+                          await loadPaymentMasterBuildFinMenu(recSite, recDate);
+                          //!
+                          await loadDepositAndDetail(recSite, recDate);
+
+                          await loadPaymentDetailAll(recSite, recDate);
+                          await loadDepositImageDB();
+                          await loadPaymentDetailImageAll();
+                          await loadPaymentDetailRemarkAll();
+
+                          //!** FinancialDetail
+                          await buildPaymentToFinancialDetailAll();
+                          await buildDepositToFinancialDetailAll();
+
+                          if (lRecReview.isNotEmpty) {
+                            dTotalPaidGo = double.parse(lFinLeftMenu
+                                .where((element) =>
+                                    element.rec_by == finLeftMenuRecBy)
+                                .first
+                                .tlpayment_sum_paid_go);
+                            dTotalRecActual = double.parse(lFinLeftMenu
+                                .where((element) =>
+                                    element.rec_by == finLeftMenuRecBy)
+                                .first
+                                .tlpayment_sum_actual);
+
+                            dTotalDiffRec = dTotalRecActual - dTotalPaidGo;
+
+                            dTotalDiffFinDetail =
+                                dTotalFinDetailActual - dTotalRecActual;
+
+                            lFinDetail.sort((a, b) => a.tlfinancial_type_number
+                                .compareTo(b.tlfinancial_type_number));
+                            groupFinTypeId = groupFinancialDetail(lFinDetail);
+                            //!* -----------------
+                            //!** FinancialGroup
+                            await buildFinancialGroup();
+                            lFinGroup.sort(
+                              (a, b) => a.tlfinancial_type_number
+                                  .compareTo(b.tlfinancial_type_number),
+                            );
+                            //!* -----------------
+
+                            await createFinancialMenu();
+                          }
+                        }
+                        isCheckALLApprove = true;
+                        finLeftMenuStatus = 'confirm';
+                        for (var ee in lFinLeftMenu) {
+                          if (ee.rec_by == 'ALL') {
+                          } else {
+                            if (ee.tlfinancial_menu_status != 'confirm') {
+                              isCheckALLApprove = false;
+                              finLeftMenuStatus = 'create';
+                            }
                           }
                         }
                       }
@@ -376,7 +403,7 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
             ]),
           ),
         ),
-        SizedBox(
+        const SizedBox(
           height: 8,
         ),
         Expanded(
@@ -474,17 +501,24 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                       const EdgeInsets.only(
                                                           bottom: 1.0),
                                                   child: Card(
-                                                    color: lFinLeftMenu[
-                                                                    indexRec]
-                                                                .tlfinancial_menu_status ==
-                                                            'confirm'
-                                                        ? Colors.grey[300]
-                                                        : finLeftMenuRecBy ==
-                                                                lFinLeftMenu[
+                                                    color: financialStatus ==
+                                                                'success' &&
+                                                            lFinLeftMenu[
                                                                         indexRec]
-                                                                    .rec_by
-                                                            ? Colors.green[100]
-                                                            : null,
+                                                                    .rec_by ==
+                                                                'ALL'
+                                                        ? Colors.grey[300]
+                                                        : lFinLeftMenu[indexRec]
+                                                                    .tlfinancial_menu_status ==
+                                                                'confirm'
+                                                            ? Colors.grey[300]
+                                                            : finLeftMenuRecBy ==
+                                                                    lFinLeftMenu[
+                                                                            indexRec]
+                                                                        .rec_by
+                                                                ? Colors
+                                                                    .green[100]
+                                                                : null,
                                                     child: SizedBox(
                                                       height: 60,
                                                       child: InkWell(
@@ -494,184 +528,179 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                         hoverColor:
                                                             Colors.green[100],
                                                         onTap: () async {
-                                                          if (lFinancial
-                                                              .isEmpty) {
-                                                            //!1 Setให้ สีขึ้นที่Card ที่เลือก
-                                                            finLeftMenuRecBy =
-                                                                lFinLeftMenu[
+                                                          print(
+                                                              'selectFinLeftMent =>');
+                                                          print(lFinLeftMenu[
+                                                              indexRec]);
+                                                          //!1 Setให้ สีขึ้นที่Card ที่เลือก
+                                                          finLeftMenuRecBy =
+                                                              lFinLeftMenu[
+                                                                      indexRec]
+                                                                  .rec_by;
+                                                          finLeftMenuId =
+                                                              lFinLeftMenu[
+                                                                      indexRec]
+                                                                  .tlfinancial_menu_id;
+                                                          //!2 Setให้ ส่วนFinanMaster show Loading
+                                                          isLoadFinancialGroup =
+                                                              true;
+                                                          //!3 Setให้ ส่วนFinanDetail show Loading
+                                                          isLoadFinancialDetail =
+                                                              true;
+                                                          lFinDetail = [];
+                                                          lFinGroup = [];
+                                                          dTotalPaidGo = 0.0;
+                                                          dTotalRecActual = 0.0;
+                                                          dTotalDiffRec = 0.0;
+                                                          dTotalDiffFinDetail =
+                                                              0.0;
+                                                          dTotalFinDetailActual =
+                                                              0.0;
+
+                                                          isCheckALLApprove =
+                                                              false;
+                                                          setState(() {});
+                                                          if (finLeftMenuRecBy ==
+                                                              'ALL') {
+                                                            //!** FinancialDetail
+                                                            await loadFinDetailByFinId(
+                                                                financialId);
+                                                            await buildPaymentToFinancialDetailAll();
+                                                            await buildDepositToFinancialDetailAll();
+
+                                                            dTotalPaidGo = double
+                                                                .parse(lFinLeftMenu[
                                                                         indexRec]
-                                                                    .rec_by;
-                                                            finLeftMenuId =
-                                                                lFinLeftMenu[
+                                                                    .tlpayment_sum_paid_go);
+                                                            dTotalRecActual = double
+                                                                .parse(lFinLeftMenu[
                                                                         indexRec]
-                                                                    .tlfinancial_menu_id;
-                                                            //!2 Setให้ ส่วนFinanMaster show Loading
-                                                            isLoadFinancialSummary =
-                                                                true;
-                                                            //!3 Setให้ ส่วนFinanDetail show Loading
-                                                            isLoadFinancialDetail =
-                                                                true;
-                                                            lFinDetail = [];
-                                                            lFinSummary = [];
-                                                            isCheckALLApprove =
-                                                                false;
-                                                            setState(() {});
-                                                            if (finLeftMenuRecBy ==
-                                                                'ALL') {
-                                                              dTotalPaidGo =
-                                                                  0.0;
-                                                              dTotalRecActual =
-                                                                  0.0;
-                                                              dTotalDiffRec =
-                                                                  0.0;
-                                                              dTotalDiffFinDetail =
-                                                                  0.0;
+                                                                    .tlpayment_sum_actual);
 
-                                                              //!** FinancialDetail
-                                                              await buildPaymentToFinancialDetailAll();
-                                                              await buildDepositToFinancialDetailAll();
+                                                            dTotalDiffRec =
+                                                                dTotalRecActual -
+                                                                    dTotalPaidGo;
 
-                                                              dTotalPaidGo = double
-                                                                  .parse(lFinLeftMenu[
-                                                                          indexRec]
-                                                                      .tlpayment_sum_paid_go);
-                                                              dTotalRecActual =
-                                                                  double.parse(
-                                                                      lFinLeftMenu[
-                                                                              indexRec]
-                                                                          .tlpayment_sum_actual);
+                                                            dTotalDiffFinDetail =
+                                                                dTotalFinDetailActual -
+                                                                    dTotalRecActual;
 
-                                                              dTotalDiffRec =
-                                                                  dTotalRecActual -
-                                                                      dTotalPaidGo;
-
-                                                              dTotalDiffFinDetail =
-                                                                  dTotalFinDetailActual -
-                                                                      dTotalRecActual;
-
-                                                              lFinDetail.sort((a,
-                                                                      b) =>
-                                                                  a.tlfinancial_type_number
-                                                                      .compareTo(
-                                                                          b.tlfinancial_type_number));
-                                                              groupFinTypeId =
-                                                                  groupFinancialDetail(
-                                                                      lFinDetail);
-
-                                                              //!** FinancialSummary
-                                                              await buildFinancialSummary();
-                                                              lFinSummary.sort(
-                                                                (a, b) => a
-                                                                    .tlfinancial_type_number
+                                                            lFinDetail.sort((a,
+                                                                    b) =>
+                                                                a.tlfinancial_type_number
                                                                     .compareTo(b
-                                                                        .tlfinancial_type_number),
-                                                              );
-                                                              isCheckALLApprove =
-                                                                  true;
-                                                              finLeftMenuStatus =
-                                                                  'confirm';
-                                                              for (var ee
-                                                                  in lFinLeftMenu) {
-                                                                if (ee.rec_by ==
-                                                                    'ALL') {
-                                                                } else {
-                                                                  if (ee.tlfinancial_menu_status !=
-                                                                      'confirm') {
-                                                                    isCheckALLApprove =
-                                                                        false;
-                                                                    finLeftMenuStatus =
-                                                                        'create';
-                                                                  }
+                                                                        .tlfinancial_type_number));
+                                                            groupFinTypeId =
+                                                                groupFinancialDetail(
+                                                                    lFinDetail);
+
+                                                            //!** FinancialGroup
+                                                            await buildFinancialGroup();
+                                                            lFinGroup.sort(
+                                                              (a, b) => a
+                                                                  .tlfinancial_type_number
+                                                                  .compareTo(b
+                                                                      .tlfinancial_type_number),
+                                                            );
+                                                            isCheckALLApprove =
+                                                                true;
+                                                            finLeftMenuStatus =
+                                                                'confirm';
+                                                            for (var ee
+                                                                in lFinLeftMenu) {
+                                                              if (ee.rec_by ==
+                                                                  'ALL') {
+                                                              } else {
+                                                                if (ee.tlfinancial_menu_status !=
+                                                                    'confirm') {
+                                                                  isCheckALLApprove =
+                                                                      false;
+                                                                  finLeftMenuStatus =
+                                                                      'create';
                                                                 }
                                                               }
-
-                                                              //!* -----------------
-                                                            } else {
-                                                              dTotalPaidGo =
-                                                                  0.0;
-                                                              dTotalRecActual =
-                                                                  0.0;
-                                                              dTotalDiffRec =
-                                                                  0.0;
-                                                              dTotalDiffFinDetail =
-                                                                  0.0;
-                                                              finLeftMenuStatus =
-                                                                  lFinLeftMenu[
-                                                                          indexRec]
-                                                                      .tlfinancial_menu_status;
-
-                                                              if (finLeftMenuStatus ==
-                                                                      'nodata' ||
-                                                                  finLeftMenuStatus ==
-                                                                      'create') {
-                                                                isFinMenuStatusSwitch =
-                                                                    false;
-                                                              } else {
-                                                                isFinMenuStatusSwitch =
-                                                                    true;
-                                                              }
-
-                                                              print(
-                                                                  'finLeftMenuStatus ${lFinLeftMenu[indexRec].tlfinancial_menu_status}');
-
-                                                              //!** FinancialDetail
-                                                              await buildPaymentToFinancialDetail(
-                                                                  finLeftMenuRecBy);
-                                                              await buildDepositToFinancialDetail(
-                                                                  finLeftMenuRecBy);
-
-                                                              dTotalPaidGo = double
-                                                                  .parse(lFinLeftMenu[
-                                                                          indexRec]
-                                                                      .tlpayment_sum_paid_go);
-                                                              dTotalRecActual =
-                                                                  double.parse(
-                                                                      lFinLeftMenu[
-                                                                              indexRec]
-                                                                          .tlpayment_sum_actual);
-
-                                                              dTotalDiffRec =
-                                                                  dTotalRecActual -
-                                                                      dTotalPaidGo;
-
-                                                              dTotalDiffFinDetail =
-                                                                  dTotalFinDetailActual -
-                                                                      dTotalRecActual;
-
-                                                              lFinDetail.sort((a,
-                                                                      b) =>
-                                                                  a.tlfinancial_type_number
-                                                                      .compareTo(
-                                                                          b.tlfinancial_type_number));
-                                                              groupFinTypeId =
-                                                                  groupFinancialDetail(
-                                                                      lFinDetail);
-                                                              //!* -----------------
-                                                              //!** FinancialSummary
-                                                              await buildFinancialSummary();
-                                                              lFinSummary.sort(
-                                                                (a, b) => a
-                                                                    .tlfinancial_type_number
-                                                                    .compareTo(b
-                                                                        .tlfinancial_type_number),
-                                                              );
-                                                              //!* -----------------
                                                             }
-                                                            Future.delayed(
-                                                              const Duration(
-                                                                  milliseconds:
-                                                                      1000),
-                                                              () {
-                                                                isLoadFinancialSummary =
-                                                                    false;
-                                                                isLoadFinancialDetail =
-                                                                    false;
-                                                                setState(() {});
-                                                              },
-                                                            );
+
+                                                            //!* -----------------
                                                           } else {
-                                                            //!lFinancial.isNotEmpty
+                                                            finLeftMenuStatus =
+                                                                lFinLeftMenu[
+                                                                        indexRec]
+                                                                    .tlfinancial_menu_status;
+
+                                                            if (finLeftMenuStatus ==
+                                                                    'nodata' ||
+                                                                finLeftMenuStatus ==
+                                                                    'create') {
+                                                              isFinMenuStatusSwitch =
+                                                                  false;
+                                                            } else {
+                                                              isFinMenuStatusSwitch =
+                                                                  true;
+                                                            }
+
+                                                            print(
+                                                                'finLeftMenuStatus ${lFinLeftMenu[indexRec].tlfinancial_menu_status}');
+                                                            await loadFinDetailByFinMenu();
+
+                                                            //!** FinancialDetail
+                                                            await buildPaymentToFinancialDetail(
+                                                                finLeftMenuRecBy);
+                                                            await buildDepositToFinancialDetail(
+                                                                finLeftMenuRecBy);
+
+                                                            for (var mFinDetail
+                                                                in lFinDetail) {
+                                                              dTotalPaidGo +=
+                                                                  double.parse(
+                                                                      mFinDetail
+                                                                          .tlpayment_detail_paid_go);
+
+                                                              dTotalRecActual +=
+                                                                  double.parse(
+                                                                      mFinDetail
+                                                                          .tlpayment_detail_actual_paid);
+                                                            }
+
+                                                            dTotalDiffRec =
+                                                                dTotalRecActual -
+                                                                    dTotalPaidGo;
+
+                                                            dTotalDiffFinDetail =
+                                                                dTotalFinDetailActual -
+                                                                    dTotalRecActual;
+
+                                                            lFinDetail.sort((a,
+                                                                    b) =>
+                                                                a.tlfinancial_type_number
+                                                                    .compareTo(b
+                                                                        .tlfinancial_type_number));
+                                                            groupFinTypeId =
+                                                                groupFinancialDetail(
+                                                                    lFinDetail);
+                                                            //!* -----------------
+                                                            //!** FinancialGroup
+                                                            await buildFinancialGroup();
+                                                            lFinGroup.sort(
+                                                              (a, b) => a
+                                                                  .tlfinancial_type_number
+                                                                  .compareTo(b
+                                                                      .tlfinancial_type_number),
+                                                            );
+                                                            //!* -----------------
                                                           }
+                                                          Future.delayed(
+                                                            const Duration(
+                                                                milliseconds:
+                                                                    1000),
+                                                            () {
+                                                              isLoadFinancialGroup =
+                                                                  false;
+                                                              isLoadFinancialDetail =
+                                                                  false;
+                                                              setState(() {});
+                                                            },
+                                                          );
                                                         },
                                                         child: Padding(
                                                           padding:
@@ -687,7 +716,10 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                   child: indexRec ==
                                                                           0
                                                                       ? Text(
-                                                                          '${lFinLeftMenu[indexRec].tlpayment_fullname}(${lFinLeftMenu.length - 1})')
+                                                                          '${lFinLeftMenu[indexRec].tlpayment_fullname}(${lFinLeftMenu.length - 1})',
+                                                                          style:
+                                                                              TextStyle(color: financialStatus == 'success' && lFinLeftMenu[indexRec].rec_by == 'ALL' ? Colors.blue[900] : null),
+                                                                        )
                                                                       : Text(
                                                                           '${indexRec}. ${lFinLeftMenu[indexRec].tlpayment_fullname}',
                                                                           style:
@@ -703,17 +735,26 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                           //! มาจาก lPaymentMaster
                                                                           Text(
                                                                               oCcy.format(double.parse(lFinLeftMenu[indexRec].tlpayment_sum_paid)),
-                                                                              style: TextStyle(color: lFinLeftMenu[indexRec].tlfinancial_menu_status == 'confirm' ? Colors.blue[900] : null)))),
+                                                                              style: TextStyle(
+                                                                                  color: financialStatus == 'success' && lFinLeftMenu[indexRec].rec_by == 'ALL'
+                                                                                      ? Colors.blue[900]
+                                                                                      : lFinLeftMenu[indexRec].tlfinancial_menu_status == 'confirm'
+                                                                                          ? Colors.blue[900]
+                                                                                          : null)))),
                                                               Expanded(
                                                                   child: Align(
                                                                       alignment:
                                                                           Alignment
                                                                               .centerRight,
                                                                       child: Text(
-                                                                          oCcy.format(double.parse(lFinLeftMenu[indexRec]
-                                                                              .rec_sum_paid_imed)),
-                                                                          style:
-                                                                              TextStyle(color: lFinLeftMenu[indexRec].tlfinancial_menu_status == 'confirm' ? Colors.blue[900] : null)))),
+                                                                          oCcy.format(
+                                                                              double.parse(lFinLeftMenu[indexRec].rec_sum_paid_imed)),
+                                                                          style: TextStyle(
+                                                                              color: financialStatus == 'success' && lFinLeftMenu[indexRec].rec_by == 'ALL'
+                                                                                  ? Colors.blue[900]
+                                                                                  : lFinLeftMenu[indexRec].tlfinancial_menu_status == 'confirm'
+                                                                                      ? Colors.blue[900]
+                                                                                      : null)))),
                                                               SizedBox(
                                                                 width: 80,
                                                                 child: Align(
@@ -755,41 +796,6 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                               },
                                             ),
                                           )),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: SizedBox(
-                                              height: 36,
-                                              child: ElevatedButton(
-                                                onHover: (hover) {
-                                                  isBtnUpdateHover = hover;
-                                                  setState(() {});
-                                                },
-                                                style: ElevatedButton.styleFrom(
-                                                    foregroundColor:
-                                                        isBtnUpdateHover
-                                                            ? Colors.white
-                                                            : Colors
-                                                                .yellow[900],
-                                                    backgroundColor:
-                                                        isBtnUpdateHover
-                                                            ? Colors.yellow[900]
-                                                            : Colors.white,
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                            side: BorderSide(
-                                                                width: 2,
-                                                                color: Colors
-                                                                    .yellow
-                                                                    .shade900),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        50))),
-                                                child: Text(' อัพเดทข้อมูล '),
-                                                onPressed: () async {},
-                                              ),
-                                            ),
-                                          )
                                         ]),
                                       )),
                                   const SizedBox(
@@ -806,17 +812,17 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                               color: Colors.grey[300],
                                               child: Padding(
                                                   padding: EdgeInsets.all(4.0),
-                                                  child: isLoadFinancialSummary
+                                                  child: isLoadFinancialGroup
                                                       ? const Center(
                                                           child:
                                                               CircularProgressIndicator(),
                                                         )
-                                                      : lFinSummary.isEmpty
+                                                      : lFinGroup.isEmpty
                                                           ? Center(
                                                               child: const Text(
                                                                   "No data"))
                                                           :
-                                                          //! FinancialSummary
+                                                          //! FinancialGroup
                                                           SizedBox(
                                                               child: Center(
                                                                 child: ListView
@@ -826,7 +832,7 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                   scrollDirection:
                                                                       Axis.horizontal,
                                                                   itemCount:
-                                                                      lFinSummary
+                                                                      lFinGroup
                                                                           .length,
                                                                   itemBuilder:
                                                                       (context,
@@ -838,7 +844,7 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                               8.0,
                                                                           horizontal:
                                                                               16.0),
-                                                                      child: lFinSummary[indexK].tlfinancial_type_group == 'DepositBank' &&
+                                                                      child: lFinGroup[indexK].tlfinancial_type_group == 'DepositBank' &&
                                                                               finLeftMenuRecBy == 'ALL'
                                                                           ? InkWell(
                                                                               onTap: () {
@@ -861,7 +867,7 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                               },
                                                                               child: Column(
                                                                                 children: [
-                                                                                  Text(lFinSummary[indexK].tlfinancial_type_group, style: TextStyle(color: Colors.green[900])),
+                                                                                  Text(lFinGroup[indexK].tlfinancial_type_group, style: TextStyle(color: Colors.green[900])),
                                                                                   const SizedBox(
                                                                                     height: 8,
                                                                                   ),
@@ -869,7 +875,7 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                                       child: lDepositImageDB.isNotEmpty
                                                                                           ? Row(
                                                                                               children: [
-                                                                                                Text(lFinSummary[indexK].tlfinancial_type_name, style: TextStyle(color: Colors.green[900])),
+                                                                                                Text(lFinGroup[indexK].tlfinancial_type_name, style: TextStyle(color: Colors.green[900])),
                                                                                                 const SizedBox(
                                                                                                   width: 4.0,
                                                                                                 ),
@@ -879,25 +885,25 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                                                 )
                                                                                               ],
                                                                                             )
-                                                                                          : Text(lFinSummary[indexK].tlfinancial_type_name, style: TextStyle(color: Colors.green[900]))),
+                                                                                          : Text(lFinGroup[indexK].tlfinancial_type_name, style: TextStyle(color: Colors.green[900]))),
                                                                                   const SizedBox(
                                                                                     height: 8,
                                                                                   ),
-                                                                                  Text(oCcy.format(double.parse(lFinSummary[indexK].tlfinancial_summary_total)), style: TextStyle(color: Colors.green[900])),
+                                                                                  Text(oCcy.format(double.parse(lFinGroup[indexK].tlfinancial_group_sum)), style: TextStyle(color: Colors.green[900])),
                                                                                 ],
                                                                               ),
                                                                             )
                                                                           : Column(
                                                                               children: [
-                                                                                Text(lFinSummary[indexK].tlfinancial_type_group, style: TextStyle(color: lFinSummary[indexK].tlfinancial_type_group == 'other' ? Colors.red : Colors.green[900])),
+                                                                                Text(lFinGroup[indexK].tlfinancial_type_group, style: TextStyle(color: lFinGroup[indexK].tlfinancial_type_group == 'other' ? Colors.red : Colors.green[900])),
                                                                                 const SizedBox(
                                                                                   height: 8,
                                                                                 ),
-                                                                                Text(lFinSummary[indexK].tlfinancial_type_name, style: TextStyle(color: lFinSummary[indexK].tlfinancial_type_group == 'other' ? Colors.red : Colors.green[900])),
+                                                                                Text(lFinGroup[indexK].tlfinancial_type_name, style: TextStyle(color: lFinGroup[indexK].tlfinancial_type_group == 'other' ? Colors.red : Colors.green[900])),
                                                                                 const SizedBox(
                                                                                   height: 8,
                                                                                 ),
-                                                                                Text(oCcy.format(double.parse(lFinSummary[indexK].tlfinancial_summary_total)), style: TextStyle(color: lFinSummary[indexK].tlfinancial_type_group == 'other' ? Colors.red : Colors.green[900])),
+                                                                                Text(oCcy.format(double.parse(lFinGroup[indexK].tlfinancial_group_sum)), style: TextStyle(color: lFinGroup[indexK].tlfinancial_type_group == 'other' ? Colors.red : Colors.green[900])),
                                                                               ],
                                                                             ),
                                                                     );
@@ -972,11 +978,11 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                                   Expanded(
                                                                                     child: SizedBox(
                                                                                       child: ListView.builder(
-                                                                                        itemCount: lFinSummary.length,
+                                                                                        itemCount: lFinGroup.length,
                                                                                         itemBuilder: (context, indexFinal) {
                                                                                           return Padding(
                                                                                             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                                                                                            child: lFinSummary[indexFinal].tlfinancial_type_group == 'DepositBank' && finLeftMenuRecBy == 'ALL'
+                                                                                            child: lFinGroup[indexFinal].tlfinancial_type_group == 'DepositBank' && finLeftMenuRecBy == 'ALL'
                                                                                                 ? InkWell(
                                                                                                     onTap: () {
                                                                                                       showDialog(
@@ -1003,7 +1009,7 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                                                             child: lDepositImageDB.isNotEmpty
                                                                                                                 ? Row(
                                                                                                                     children: [
-                                                                                                                      Text('${lFinSummary[indexFinal].tlfinancial_type_name} (${lFinSummary[indexFinal].tlfinancial_type_group})', style: TextStyle(color: Colors.green[900])),
+                                                                                                                      Text('${lFinGroup[indexFinal].tlfinancial_type_name} (${lFinGroup[indexFinal].tlfinancial_type_group})', style: TextStyle(color: Colors.green[900])),
                                                                                                                       const SizedBox(
                                                                                                                         width: 4.0,
                                                                                                                       ),
@@ -1013,27 +1019,27 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                                                                       )
                                                                                                                     ],
                                                                                                                   )
-                                                                                                                : Text('${lFinSummary[indexFinal].tlfinancial_type_name} (${lFinSummary[indexFinal].tlfinancial_type_group})', style: TextStyle(color: Colors.green[900]))),
-                                                                                                        Text(oCcy.format(double.parse(lFinSummary[indexFinal].tlfinancial_summary_total)), style: TextStyle(color: Colors.green[900])),
+                                                                                                                : Text('${lFinGroup[indexFinal].tlfinancial_type_name} (${lFinGroup[indexFinal].tlfinancial_type_group})', style: TextStyle(color: Colors.green[900]))),
+                                                                                                        Text(oCcy.format(double.parse(lFinGroup[indexFinal].tlfinancial_group_sum)), style: TextStyle(color: Colors.green[900])),
                                                                                                       ],
                                                                                                     ),
                                                                                                   )
-                                                                                                : lFinSummary[indexFinal].tlfinancial_type_group == 'CheckByFIN'
+                                                                                                : lFinGroup[indexFinal].tlfinancial_type_group == 'CheckByFIN'
                                                                                                     ? Padding(
                                                                                                         padding: const EdgeInsets.only(top: 24.0),
                                                                                                         child: Row(
                                                                                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                                           children: [
-                                                                                                            Text('${lFinSummary[indexFinal].tlfinancial_type_name} (${lFinSummary[indexFinal].tlfinancial_type_group})', style: TextStyle(color: lFinSummary[indexFinal].tlfinancial_type_group == 'other' ? Colors.red : Colors.green[900])),
-                                                                                                            Text(oCcy.format(double.parse(lFinSummary[indexFinal].tlfinancial_summary_total)), style: TextStyle(color: lFinSummary[indexFinal].tlfinancial_type_group == 'other' ? Colors.red : Colors.green[900])),
+                                                                                                            Text('${lFinGroup[indexFinal].tlfinancial_type_name} (${lFinGroup[indexFinal].tlfinancial_type_group})', style: TextStyle(color: lFinGroup[indexFinal].tlfinancial_type_group == 'other' ? Colors.red : Colors.green[900])),
+                                                                                                            Text(oCcy.format(double.parse(lFinGroup[indexFinal].tlfinancial_group_sum)), style: TextStyle(color: lFinGroup[indexFinal].tlfinancial_type_group == 'other' ? Colors.red : Colors.green[900])),
                                                                                                           ],
                                                                                                         ),
                                                                                                       )
                                                                                                     : Row(
                                                                                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                                         children: [
-                                                                                                          Text('${lFinSummary[indexFinal].tlfinancial_type_name} (${lFinSummary[indexFinal].tlfinancial_type_group})', style: TextStyle(color: lFinSummary[indexFinal].tlfinancial_type_group == 'other' ? Colors.red : Colors.green[900])),
-                                                                                                          Text(oCcy.format(double.parse(lFinSummary[indexFinal].tlfinancial_summary_total)), style: TextStyle(color: lFinSummary[indexFinal].tlfinancial_type_group == 'other' ? Colors.red : Colors.green[900])),
+                                                                                                          Text('${lFinGroup[indexFinal].tlfinancial_type_name} (${lFinGroup[indexFinal].tlfinancial_type_group})', style: TextStyle(color: lFinGroup[indexFinal].tlfinancial_type_group == 'other' ? Colors.red : Colors.green[900])),
+                                                                                                          Text(oCcy.format(double.parse(lFinGroup[indexFinal].tlfinancial_group_sum)), style: TextStyle(color: lFinGroup[indexFinal].tlfinancial_type_group == 'other' ? Colors.red : Colors.green[900])),
                                                                                                         ],
                                                                                                       ),
                                                                                           );
@@ -1046,6 +1052,7 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                                   ),
                                                                                   SizedBox(
                                                                                     child: TextFormField(
+                                                                                      readOnly: financialStatus == 'success' ? true : false,
                                                                                       autofocus: true,
                                                                                       decoration: const InputDecoration(labelText: "หมายเหตุ"),
                                                                                       controller: finCommentController,
@@ -1057,17 +1064,44 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                                   ),
                                                                                   SizedBox(
                                                                                     height: 36,
-                                                                                    child: ElevatedButton(
-                                                                                      onHover: (hover) {
-                                                                                        isBtnFinConfirmHover = hover;
-                                                                                        setState(() {});
-                                                                                      },
-                                                                                      style: ElevatedButton.styleFrom(foregroundColor: isBtnFinConfirmHover ? Colors.grey[300] : Colors.green[900], backgroundColor: isBtnFinConfirmHover ? Colors.green[900] : Colors.grey[300], shape: RoundedRectangleBorder(side: BorderSide(width: 2, color: Colors.green.shade900), borderRadius: BorderRadius.circular(50))),
-                                                                                      child: const Text(' Financial Confirm '),
-                                                                                      onPressed: () async {
-                                                                                        Navigator.pop(context);
-                                                                                      },
-                                                                                    ),
+                                                                                    child: financialStatus == 'success'
+                                                                                        ? null
+                                                                                        : ElevatedButton(
+                                                                                            onHover: (hover) {
+                                                                                              isBtnFinConfirmHover = hover;
+                                                                                              setState(() {});
+                                                                                            },
+                                                                                            style: ElevatedButton.styleFrom(foregroundColor: isBtnFinConfirmHover ? Colors.grey[300] : Colors.green[900], backgroundColor: isBtnFinConfirmHover ? Colors.green[900] : Colors.grey[300], shape: RoundedRectangleBorder(side: BorderSide(width: 2, color: Colors.green.shade900), borderRadius: BorderRadius.circular(50))),
+                                                                                            child: const Text(' Financial Confirm '),
+                                                                                            onPressed: () async {
+                                                                                              double sumFinActual = 0.0;
+                                                                                              double diffFin = 0.0;
+                                                                                              lFin = [];
+                                                                                              showDialog(
+                                                                                                barrierDismissible: true,
+                                                                                                context: context,
+                                                                                                builder: (context) {
+                                                                                                  return const Center(child: CircularProgressIndicator());
+                                                                                                },
+                                                                                              );
+                                                                                              for (var fg in lFinGroup) {
+                                                                                                await createFinancialGroup(fg);
+                                                                                                sumFinActual += double.parse(fg.tlfinancial_group_sum);
+                                                                                              }
+                                                                                              diffFin = sumFinActual - double.parse(lFinLeftMenu.where((element) => element.rec_by == 'ALL').first.tlpayment_sum_actual);
+
+                                                                                              final dateNow = DateTime.now();
+                                                                                              print('lFinancial =>');
+                                                                                              FinancialModel newFin = FinancialModel(tlfinancial_id: financialId, tlfinancial_rec_date: recDate, tlfinancial_rec_site: recSite, tlfinancial_create_by: widget.lEmp.first.employee_id, tlfinancial_create_date: DateFormat('yyyy-MM-dd').format(dateNow), tlfinancial_create_time: DateFormat('HH:mm:ss').format(dateNow), tlfin_imed_paid: lFinLeftMenu.where((element) => element.rec_by == 'ALL').first.rec_sum_paid_imed, tlfin_payment_paid: lFinLeftMenu.where((element) => element.rec_by == 'ALL').first.tlpayment_sum_paid, tlfin_payment_paid_go: lFinLeftMenu.where((element) => element.rec_by == 'ALL').first.tlpayment_sum_paid_go, tlfin_payment_paid_actual: lFinLeftMenu.where((element) => element.rec_by == 'ALL').first.tlpayment_sum_actual, tlfinancial_actual: sumFinActual.toStringAsFixed(2), tlfinancial_diff: diffFin.toStringAsFixed(2), tlfinancial_status: 'success', tlfinancial_comment: finCommentController.text, tlfinancial_modify_by: '', tlfinancial_modify_date: '', tlfinancial_modify_time: '');
+                                                                                              lFin.add(newFin);
+                                                                                              await createFinancial(newFin);
+
+                                                                                              Navigator.pop(context);
+                                                                                              Navigator.pop(context);
+                                                                                              financialStatus = 'success';
+                                                                                              setStateMain();
+                                                                                            },
+                                                                                          ),
                                                                                   ),
                                                                                 ],
                                                                               ),
@@ -1110,8 +1144,8 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                   )
                                                                 : lFinDetail
                                                                         .isEmpty
-                                                                    ? Center(
-                                                                        child: const Text(
+                                                                    ? const Center(
+                                                                        child: Text(
                                                                             "No data"))
                                                                     : SizedBox(
                                                                         child:
@@ -1385,11 +1419,11 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                                                                                                                   groupFinTypeId = groupFinancialDetail(lFinDetail);
 
                                                                                                                                                                   //!* -----------------
-                                                                                                                                                                  //!** FinancialSummary
-                                                                                                                                                                  lFinSummary = [];
-                                                                                                                                                                  await buildFinancialSummary();
+                                                                                                                                                                  //!** FinancialGroup
+                                                                                                                                                                  lFinGroup = [];
+                                                                                                                                                                  await buildFinancialGroup();
 
-                                                                                                                                                                  lFinSummary.sort(
+                                                                                                                                                                  lFinGroup.sort(
                                                                                                                                                                     (a, b) => a.tlfinancial_type_number.compareTo(b.tlfinancial_type_number),
                                                                                                                                                                   );
                                                                                                                                                                 } else {
@@ -1424,7 +1458,7 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                                                                                                   ),
                                                                                                                                                 ],
                                                                                                                                               )),
-                                                                                                                                          child: Icon(Icons.edit_square, color: Colors.grey)) 
+                                                                                                                                          child: Icon(Icons.edit_square, color: Colors.grey))
                                                                                                                                       : const Icon(Icons.edit_square, color: Colors.grey)),
                                                                                                                               const SizedBox(
                                                                                                                                 height: 24,
@@ -1565,16 +1599,16 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                                                             actualFin: mFinDetail.tlfinancial_detail_actual,
                                                                                                             finLeftMenuStatus: finLeftMenuStatus,
                                                                                                             callbackActualFin: (actFin) async {
-                                                                                                              lFinDetail.where((element) => element.tlpayment_detail_id == mFinDetail.tlpayment_detail_id).first.tlfinancial_detail_actual = actFin;
+                                                                                                              lFinDetail.where((element) => element.tlfinancial_detail_id == mFinDetail.tlfinancial_detail_id).first.tlfinancial_detail_actual = actFin;
                                                                                                               dTotalFinDetailActual = 0;
                                                                                                               lFinDetail.forEach((element) {
                                                                                                                 dTotalFinDetailActual += double.parse(element.tlfinancial_detail_actual);
                                                                                                               });
                                                                                                               dTotalDiffFinDetail = dTotalFinDetailActual - dTotalRecActual;
 
-                                                                                                              lFinSummary.clear();
-                                                                                                              await buildFinancialSummary();
-                                                                                                              lFinSummary.sort(
+                                                                                                              lFinGroup.clear();
+                                                                                                              await buildFinancialGroup();
+                                                                                                              lFinGroup.sort(
                                                                                                                 (a, b) => a.tlfinancial_type_number.compareTo(b.tlfinancial_type_number),
                                                                                                               );
 
@@ -1699,6 +1733,24 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                                   .end,
                                                           children: [
                                                             SizedBox(
+                                                                child: dTotalPaidGo - double.parse(lFinLeftMenu.where((ee) => ee.rec_by == finLeftMenuRecBy).first.tlpayment_sum_paid_go) <
+                                                                            1 &&
+                                                                        dTotalPaidGo - double.parse(lFinLeftMenu.where((ee) => ee.rec_by == finLeftMenuRecBy).first.tlpayment_sum_paid_go) >
+                                                                            -1
+                                                                    ? null
+                                                                    : const Tooltip(
+                                                                        message:
+                                                                            'กรุณากด อัพเดทข้อมูล',
+                                                                        child:
+                                                                            Icon(
+                                                                          Icons
+                                                                              .warning_amber,
+                                                                          color:
+                                                                              Colors.orange,
+                                                                        ))),
+                                                            const SizedBox(
+                                                                width: 16),
+                                                            SizedBox(
                                                               child: Text(
                                                                 'เงินนำส่ง (1) : ${oCcy.format(dTotalPaidGo)}',
                                                               ),
@@ -1756,99 +1808,145 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
                                                           ],
                                                         ),
                                                       ),
-                                                      Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
-                                                        children: [
-                                                          SizedBox(
-                                                              child: finLeftMenuRecBy ==
-                                                                          'ALL' ||
-                                                                      isStatusScreen !=
-                                                                          'New'
-                                                                  ? null
-                                                                  : Padding(
-                                                                      padding: const EdgeInsets
-                                                                          .all(
-                                                                          8.0),
-                                                                      child:
-                                                                          _buildSwitchStatusFinMenu(),
-                                                                    )),
-                                                          SizedBox(
-                                                            child: finLeftMenuRecBy ==
-                                                                    'ALL'
-                                                                ? null
-                                                                : finLeftMenuStatus ==
-                                                                        'confirm'
-                                                                    ? null
-                                                                    : Padding(
-                                                                        padding: const EdgeInsets
-                                                                            .all(
-                                                                            8.0),
-                                                                        child:
-                                                                            SizedBox(
-                                                                          height:
-                                                                              36,
-                                                                          child:
-                                                                              ElevatedButton(
-                                                                            onHover:
-                                                                                (hover) {
-                                                                              isBtnAddPaymentHover = hover;
-                                                                              setState(() {});
-                                                                            },
-                                                                            style: ElevatedButton.styleFrom(
-                                                                                foregroundColor: isBtnAddPaymentHover ? Colors.white : Colors.blue[900],
-                                                                                backgroundColor: isBtnAddPaymentHover ? Colors.blue[900] : Colors.white,
-                                                                                shape: RoundedRectangleBorder(side: BorderSide(width: 2, color: Colors.blue.shade900), borderRadius: BorderRadius.circular(50))),
-                                                                            child:
-                                                                                const Padding(
-                                                                              padding: EdgeInsets.all(8.0),
-                                                                              child: Text(' เพิ่มประเภทการรับเงิน '),
-                                                                            ),
-                                                                            onPressed:
-                                                                                () {
-                                                                              showDialog(
-                                                                                  context: context,
-                                                                                  builder: (context) {
-                                                                                    return Dialog(
-                                                                                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
-                                                                                        child: AddPaymentTypeFinancialScreen(
-                                                                                            financialId: financialId,
-                                                                                            financialMenuId: finLeftMenuId,
-                                                                                            site: recSite,
-                                                                                            empRec: finLeftMenuRecBy,
-                                                                                            lEmp: widget.lEmp,
-                                                                                            lFinTypeAndCom: lFinTypeAndCom,
-                                                                                            callbackAddFinDetail: (FinDeModel) async {
-                                                                                              lFinDetail.add(FinDeModel);
-                                                                                              lFinSummary = [];
+                                                      SizedBox(
+                                                        child:
+                                                            financialStatus ==
+                                                                    'new'
+                                                                ? Row(
+                                                                    mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .spaceBetween,
+                                                                    children: [
+                                                                      SizedBox(
+                                                                          child: finLeftMenuRecBy == 'ALL' || isStatusScreen != 'New'
+                                                                              ? null
+                                                                              : Padding(
+                                                                                  padding: const EdgeInsets.all(8.0),
+                                                                                  child: _buildSwitchStatusFinMenu(),
+                                                                                )),
+                                                                      SizedBox(
+                                                                        child: finLeftMenuRecBy ==
+                                                                                'ALL'
+                                                                            ? null
+                                                                            : finLeftMenuStatus == 'confirm'
+                                                                                ? null
+                                                                                : Padding(
+                                                                                    padding: const EdgeInsets.all(8.0),
+                                                                                    child: SizedBox(
+                                                                                      height: 36,
+                                                                                      child: ElevatedButton(
+                                                                                        onHover: (hover) {
+                                                                                          isBtnUpdateHover = hover;
+                                                                                          setState(() {});
+                                                                                        },
+                                                                                        style: ElevatedButton.styleFrom(foregroundColor: isBtnUpdateHover ? Colors.white : Colors.yellow[900], backgroundColor: isBtnUpdateHover ? Colors.yellow[900] : Colors.white, shape: RoundedRectangleBorder(side: BorderSide(width: 2, color: Colors.yellow.shade900), borderRadius: BorderRadius.circular(50))),
+                                                                                        child: Text(' อัพเดทข้อมูล '),
+                                                                                        onPressed: () async {
+                                                                                          showDialog(
+                                                                                            barrierDismissible: true,
+                                                                                            context: context,
+                                                                                            builder: (context) {
+                                                                                              return const Center(child: CircularProgressIndicator());
+                                                                                            },
+                                                                                          );
 
-                                                                                              lFinDetail.sort((a, b) => a.tlfinancial_type_number.compareTo(b.tlfinancial_type_number));
+                                                                                          final lFinDetailByMenuId = lFinDetail.where((element) => element.tlfinancial_menu_id == finLeftMenuId).toList();
+                                                                                          lFinDetailByMenuId.sort(
+                                                                                            (a, b) => a.tlpayment_id.compareTo(b.tlpayment_id),
+                                                                                          );
+                                                                                          String paymentIdMulti = '';
+                                                                                          double dPaySumPaid = 0.0;
+                                                                                          double dPaySumPaidGo = 0.0;
+                                                                                          double dPaySumActual = 0.0;
+                                                                                          double dSumPaidImed = 0.0;
+                                                                                          for (var mFinDetail in lFinDetailByMenuId) {
+                                                                                            paymentIdMulti += '${mFinDetail.tlpayment_id},';
+                                                                                            dPaySumPaid += double.parse(mFinDetail.tlpayment_detail_paid);
+                                                                                            dPaySumPaidGo += double.parse(mFinDetail.tlpayment_detail_paid_go);
+                                                                                            dPaySumActual += double.parse(mFinDetail.tlpayment_detail_actual_paid);
+                                                                                          }
+                                                                                          paymentIdMulti = paymentIdMulti.substring(0, paymentIdMulti.length - 1);
+                                                                                          dSumPaidImed = double.parse(lFinLeftMenu.where((element) => element.rec_by == finLeftMenuRecBy).first.rec_sum_paid_imed);
 
-                                                                                              groupFinTypeId = '';
-                                                                                              setState(() {});
-                                                                                              Future.delayed(
-                                                                                                Duration(milliseconds: 200),
-                                                                                                () async {
-                                                                                                  groupFinTypeId = groupFinancialDetail(lFinDetail);
-                                                                                                  //!* -----------------
-                                                                                                  //!** FinancialSummary
-                                                                                                  await buildFinancialSummary();
+                                                                                          lFinLeftMenu.where((element) => element.rec_by == finLeftMenuRecBy).first.tlfinancial_menu_diffimedpaid = (dPaySumPaid - dSumPaidImed).toStringAsFixed(2);
+                                                                                          lFinLeftMenu.where((element) => element.rec_by == finLeftMenuRecBy).first.tlpayment_sum_paid = dPaySumPaid.toStringAsFixed(2);
+                                                                                          lFinLeftMenu.where((element) => element.rec_by == finLeftMenuRecBy).first.tlpayment_sum_paid_go = dPaySumPaidGo.toStringAsFixed(2);
+                                                                                          lFinLeftMenu.where((element) => element.rec_by == finLeftMenuRecBy).first.tlpayment_sum_actual = dPaySumActual.toStringAsFixed(2);
 
-                                                                                                  lFinSummary.sort(
-                                                                                                    (a, b) => a.tlfinancial_type_number.compareTo(b.tlfinancial_type_number),
-                                                                                                  );
-                                                                                                  setState(() {});
-                                                                                                },
-                                                                                              );
-                                                                                            }));
-                                                                                  });
-                                                                            },
-                                                                          ),
-                                                                        ),
+                                                                                          await updateFinMenuDetail(lFinLeftMenu.where((element) => element.rec_by == finLeftMenuRecBy).first);
+
+                                                                                          Navigator.pop(context);
+                                                                                          setState(() {});
+                                                                                        },
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
                                                                       ),
-                                                          ),
-                                                        ],
+                                                                      SizedBox(
+                                                                        child: finLeftMenuRecBy ==
+                                                                                'ALL'
+                                                                            ? null
+                                                                            : finLeftMenuStatus == 'confirm'
+                                                                                ? null
+                                                                                : Padding(
+                                                                                    padding: const EdgeInsets.all(8.0),
+                                                                                    child: SizedBox(
+                                                                                      height: 36,
+                                                                                      child: ElevatedButton(
+                                                                                        onHover: (hover) {
+                                                                                          isBtnAddPaymentHover = hover;
+                                                                                          setState(() {});
+                                                                                        },
+                                                                                        style: ElevatedButton.styleFrom(foregroundColor: isBtnAddPaymentHover ? Colors.white : Colors.blue[900], backgroundColor: isBtnAddPaymentHover ? Colors.blue[900] : Colors.white, shape: RoundedRectangleBorder(side: BorderSide(width: 2, color: Colors.blue.shade900), borderRadius: BorderRadius.circular(50))),
+                                                                                        child: const Padding(
+                                                                                          padding: EdgeInsets.all(8.0),
+                                                                                          child: Text(' เพิ่มประเภทการรับเงิน '),
+                                                                                        ),
+                                                                                        onPressed: () {
+                                                                                          showDialog(
+                                                                                              context: context,
+                                                                                              builder: (context) {
+                                                                                                return Dialog(
+                                                                                                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
+                                                                                                    child: AddPaymentTypeFinancialScreen(
+                                                                                                        financialId: financialId,
+                                                                                                        financialMenuId: finLeftMenuId,
+                                                                                                        site: recSite,
+                                                                                                        empRec: finLeftMenuRecBy,
+                                                                                                        lEmp: widget.lEmp,
+                                                                                                        lFinTypeAndCom: lFinTypeAndCom,
+                                                                                                        callbackAddFinDetail: (FinDeModel) async {
+                                                                                                          lFinDetail.add(FinDeModel);
+                                                                                                          lFinGroup = [];
+
+                                                                                                          lFinDetail.sort((a, b) => a.tlfinancial_type_number.compareTo(b.tlfinancial_type_number));
+
+                                                                                                          groupFinTypeId = '';
+                                                                                                          setState(() {});
+                                                                                                          Future.delayed(
+                                                                                                            Duration(milliseconds: 200),
+                                                                                                            () async {
+                                                                                                              groupFinTypeId = groupFinancialDetail(lFinDetail);
+                                                                                                              //!* -----------------
+                                                                                                              //!** FinancialGroup
+                                                                                                              await buildFinancialGroup();
+
+                                                                                                              lFinGroup.sort(
+                                                                                                                (a, b) => a.tlfinancial_type_number.compareTo(b.tlfinancial_type_number),
+                                                                                                              );
+                                                                                                              setState(() {});
+                                                                                                            },
+                                                                                                          );
+                                                                                                        }));
+                                                                                              });
+                                                                                        },
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                      ),
+                                                                    ],
+                                                                  )
+                                                                : null,
                                                       ),
                                                     ],
                                                   )))
@@ -1951,13 +2049,14 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
     await Dio().post(api, data: formData);
   }
 
-  buildFinancialSummary() {
-    var gFinSummary = groupBy(lFinDetail, (p0) => p0.tlfinancial_type_id);
+  buildFinancialGroup() {
+    var gFinGroup = groupBy(lFinDetail, (p0) => p0.tlfinancial_type_id);
     int index = 0;
-    double dSummaryAllTotal = 0.0;
-    gFinSummary.forEach((key, value) {
-      String tlfinancial_summary_id =
-          '${TlConstant.runID()}${index.toString().padLeft(2, '0')}';
+    double dGroupAllTotal = 0.0;
+    String runId = TlConstant.runID();
+    gFinGroup.forEach((key, value) {
+      String tlfinancial_group_id =
+          '${runId}${index.toString().padLeft(2, '0')}';
 
       String typeId = key;
       String group = value.first.tlfinancial_type_group;
@@ -1966,7 +2065,7 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
       String tlfinancialId = value.first.tlfinancial_id;
       String tldepositId = '';
       String isCheckdepositId = '';
-      double dSummaryTotal = 0.0;
+      double dGroupTotal = 0.0;
       if (group == 'DepositBank' && finLeftMenuRecBy == 'ALL') {
         for (var ee in value) {
           if (ee.tldeposit_id.isNotEmpty) {
@@ -1974,68 +2073,70 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
               tldepositId += '${ee.tldeposit_id},';
 
               isCheckdepositId = ee.tldeposit_id;
-              dSummaryTotal += double.parse(ee.tldeposit_total_actual);
+              dGroupTotal += double.parse(ee.tldeposit_total_actual);
             } else if (isCheckdepositId != ee.tldeposit_id) {
               tldepositId += '${ee.tldeposit_id},';
               isCheckdepositId = ee.tldeposit_id;
-              dSummaryTotal += double.parse(ee.tldeposit_total_actual);
+              dGroupTotal += double.parse(ee.tldeposit_total_actual);
             }
           }
         }
-        tldepositId = tldepositId.substring(0, tldepositId.length - 1);
+        if (tldepositId.isNotEmpty) {
+          tldepositId = tldepositId.substring(0, tldepositId.length - 1);
+        }
+
         print('tldepositId => ${tldepositId} ');
-        print('dSummaryTotal => ${dSummaryTotal} ');
+        print('dGroupTotal => ${dGroupTotal} ');
       } else {
         for (var ee in value) {
-          dSummaryTotal += double.parse(ee.tlfinancial_detail_actual);
+          dGroupTotal += double.parse(ee.tlfinancial_detail_actual);
         }
       }
-      dSummaryAllTotal += dSummaryTotal;
-      FinancialSummaryModel fsm = FinancialSummaryModel(
-          tlfinancial_summary_id: tlfinancial_summary_id,
+      dGroupAllTotal += dGroupTotal;
+      FinancialGroupModel fsm = FinancialGroupModel(
+          tlfinancial_group_id: tlfinancial_group_id,
           tlfinancial_type_id: typeId,
           tlfinancial_type_name: name,
           tlfinancial_type_group: group,
           tlfinancial_type_number: num,
-          tlfinancial_summary_total: dSummaryTotal.toStringAsFixed(2),
+          tlfinancial_group_sum: dGroupTotal.toStringAsFixed(2),
           tlfinancial_id: tlfinancialId,
           tldeposit_id: tldepositId);
-      lFinSummary.add(fsm);
+      lFinGroup.add(fsm);
       index += 1;
     });
-    FinancialSummaryModel fsm = FinancialSummaryModel(
-        tlfinancial_summary_id: 'tlfinancial_summary_id',
+    FinancialGroupModel fsm = FinancialGroupModel(
+        tlfinancial_group_id: '${runId}64',
         tlfinancial_type_id: 'typeId00',
         tlfinancial_type_name: 'ยอดนำส่ง(FIN)',
         tlfinancial_type_group: 'CheckByFIN',
         tlfinancial_type_number: '64',
-        tlfinancial_summary_total: dSummaryAllTotal.toStringAsFixed(2),
+        tlfinancial_group_sum: dGroupAllTotal.toStringAsFixed(2),
         tlfinancial_id: financialId,
         tldeposit_id: '');
-    lFinSummary.add(fsm);
+    lFinGroup.add(fsm);
 
     final lFinLeftMenuByRec = lFinLeftMenu
         .where((element) => element.rec_by == finLeftMenuRecBy)
         .toList();
     for (var ee in lFinLeftMenuByRec) {
-      FinancialSummaryModel fsm = FinancialSummaryModel(
-          tlfinancial_summary_id: 'tlfinancial_summary_id',
+      FinancialGroupModel fsm = FinancialGroupModel(
+          tlfinancial_group_id: '${runId}65',
           tlfinancial_type_id: 'typeId01',
           tlfinancial_type_name: 'ยอดนำส่ง(Imed)',
           tlfinancial_type_group: 'Imed',
           tlfinancial_type_number: '65',
-          tlfinancial_summary_total:
+          tlfinancial_group_sum:
               double.parse(ee.tlpayment_sum_paid_go).toStringAsFixed(2),
           tlfinancial_id: financialId,
           tldeposit_id: '');
-      lFinSummary.add(fsm);
+      lFinGroup.add(fsm);
     }
   }
 
   //!---------ALL
 
   buildPaymentToFinancialDetailAll() {
-    dTotalFinDetailActual = 0.0;
     final lFinPaymentAndDetailAll = lFinPaymentAndDetail.toList();
 
     for (var i = 0; i < lFinPaymentAndDetailAll.length; i++) {
@@ -2066,55 +2167,63 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
         tlfinancial_type_number = lFinType.first.tlfinancial_type_number;
       }
 
-      FinancialDetailModel newFPay = FinancialDetailModel(
-          tlfinancial_detail_id: tlfinancial_detail_id,
-          tlpayment_detail_site_id:
-              lFinPaymentAndDetailAll[i].tlpayment_detail_site_id,
-          tlpayment_rec_by: lFinPaymentAndDetailAll[i].tlpayment_rec_by,
-          tlpayment_rec_date: lFinPaymentAndDetailAll[i].tlpayment_rec_date,
-          tlpayment_type_id: lFinPaymentAndDetailAll[i].tlpayment_type_id,
-          tlpayment_type: lFinPaymentAndDetailAll[i].tlpayment_type,
-          tlpayment_type_detail:
-              lFinPaymentAndDetailAll[i].tlpayment_type_detail,
-          tlpayment_detail_actual_paid:
-              lFinPaymentAndDetailAll[i].tlpayment_detail_actual_paid,
-          tlpayment_detail_id: lFinPaymentAndDetailAll[i].tlpayment_detail_id,
-          tlpayment_id: lFinPaymentAndDetailAll[i].tlpayment_id,
-          tlpayment_detail_paid: lFinPaymentAndDetailAll[i].paid,
-          tlpayment_detail_paid_go: lFinPaymentAndDetailAll[i].paid_go,
-          tlpayment_detail_diff_paid:
-              lFinPaymentAndDetailAll[i].tlpayment_detail_diff_paid,
-          tlpayment_detail_comment:
-              lFinPaymentAndDetailAll[i].tlpayment_detail_comment,
-          tldeposit_id: '',
-          tldeposit_create_by: '',
-          deposit_fullname: '',
-          tldeposit_detail_id: '',
-          tldeposit_bank_account: '',
-          tldeposit_date: '',
-          tldeposit_total: '',
-          tldeposit_total_actual: '',
-          tldeposit_total_balance: '',
-          tldeposit_comment: '',
-          tlfinancial_type_id: tlfinancial_type_id,
-          tlfinancial_type_name: tlfinancial_type_name,
-          tlfinancial_type_group: tlfinancial_type_group,
-          tlfinancial_type_number: tlfinancial_type_number,
-          tlfinancial_detail_actual:
-              lFinPaymentAndDetailAll[i].tlpayment_detail_actual_paid,
-          tlfinancial_detail_comment: '',
-          tlfinancial_detail_create_by: widget.lEmp.first.employee_id,
-          tlfinancial_detail_create_date: '',
-          tlfinancial_detail_create_time: '',
-          tlfinancial_detail_modify_by: '',
-          tlfinancial_detail_modify_date: '',
-          tlfinancial_detail_modify_time: '',
-          tlfinancial_id: financialId,
-          tlfinancial_menu_id: finLeftMenuId);
-      print('leftMenuIDALL : ${finLeftMenuId}');
-      lFinDetail.add(newFPay);
-      dTotalFinDetailActual +=
-          double.parse(lFinPaymentAndDetailAll[i].tlpayment_detail_actual_paid);
+      final checkFinDetail = lFinDetail
+          .where((cFD) =>
+              cFD.tlpayment_detail_id ==
+              lFinPaymentAndDetailAll[i].tlpayment_detail_id)
+          .toList();
+
+      if (checkFinDetail.isEmpty) {
+        FinancialDetailModel newFPay = FinancialDetailModel(
+            tlfinancial_detail_id: tlfinancial_detail_id,
+            tlpayment_detail_site_id:
+                lFinPaymentAndDetailAll[i].tlpayment_detail_site_id,
+            tlpayment_rec_by: lFinPaymentAndDetailAll[i].tlpayment_rec_by,
+            tlpayment_rec_date: lFinPaymentAndDetailAll[i].tlpayment_rec_date,
+            tlpayment_type_id: lFinPaymentAndDetailAll[i].tlpayment_type_id,
+            tlpayment_type: lFinPaymentAndDetailAll[i].tlpayment_type,
+            tlpayment_type_detail:
+                lFinPaymentAndDetailAll[i].tlpayment_type_detail,
+            tlpayment_detail_actual_paid:
+                lFinPaymentAndDetailAll[i].tlpayment_detail_actual_paid,
+            tlpayment_detail_id: lFinPaymentAndDetailAll[i].tlpayment_detail_id,
+            tlpayment_id: lFinPaymentAndDetailAll[i].tlpayment_id,
+            tlpayment_detail_paid: lFinPaymentAndDetailAll[i].paid,
+            tlpayment_detail_paid_go: lFinPaymentAndDetailAll[i].paid_go,
+            tlpayment_detail_diff_paid:
+                lFinPaymentAndDetailAll[i].tlpayment_detail_diff_paid,
+            tlpayment_detail_comment:
+                lFinPaymentAndDetailAll[i].tlpayment_detail_comment,
+            tldeposit_id: '',
+            tldeposit_create_by: '',
+            deposit_fullname: '',
+            tldeposit_detail_id: '',
+            tldeposit_bank_account: '',
+            tldeposit_date: '',
+            tldeposit_total: '',
+            tldeposit_total_actual: '',
+            tldeposit_total_balance: '',
+            tldeposit_comment: '',
+            tlfinancial_type_id: tlfinancial_type_id,
+            tlfinancial_type_name: tlfinancial_type_name,
+            tlfinancial_type_group: tlfinancial_type_group,
+            tlfinancial_type_number: tlfinancial_type_number,
+            tlfinancial_detail_actual:
+                lFinPaymentAndDetailAll[i].tlpayment_detail_actual_paid,
+            tlfinancial_detail_comment: '',
+            tlfinancial_detail_create_by: widget.lEmp.first.employee_id,
+            tlfinancial_detail_create_date: '',
+            tlfinancial_detail_create_time: '',
+            tlfinancial_detail_modify_by: '',
+            tlfinancial_detail_modify_date: '',
+            tlfinancial_detail_modify_time: '',
+            tlfinancial_id: financialId,
+            tlfinancial_menu_id: finLeftMenuId);
+        print('leftMenuIDALL : ${finLeftMenuId}');
+        lFinDetail.add(newFPay);
+        dTotalFinDetailActual += double.parse(
+            lFinPaymentAndDetailAll[i].tlpayment_detail_actual_paid);
+      }
     }
   }
 
@@ -2191,7 +2300,6 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
 
   //!---------ByEmp
   buildPaymentToFinancialDetail(String finLeftMenuRecBy) {
-    dTotalFinDetailActual = 0.0;
     final lFinPaymentAndDetailByEmp = lFinPaymentAndDetail
         .where((element) => element.tlpayment_rec_by == finLeftMenuRecBy)
         .toList();
@@ -2223,55 +2331,64 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
         tlfinancial_type_number = lFinType.first.tlfinancial_type_number;
       }
 
-      FinancialDetailModel newFPay = FinancialDetailModel(
-          tlfinancial_detail_id: tlfinancial_detail_id,
-          tlpayment_detail_site_id:
-              lFinPaymentAndDetailByEmp[i].tlpayment_detail_site_id,
-          tlpayment_rec_by: lFinPaymentAndDetailByEmp[i].tlpayment_rec_by,
-          tlpayment_rec_date: lFinPaymentAndDetailByEmp[i].tlpayment_rec_date,
-          tlpayment_type_id: lFinPaymentAndDetailByEmp[i].tlpayment_type_id,
-          tlpayment_type: lFinPaymentAndDetailByEmp[i].tlpayment_type,
-          tlpayment_type_detail:
-              lFinPaymentAndDetailByEmp[i].tlpayment_type_detail,
-          tlpayment_detail_actual_paid:
-              lFinPaymentAndDetailByEmp[i].tlpayment_detail_actual_paid,
-          tlpayment_detail_id: lFinPaymentAndDetailByEmp[i].tlpayment_detail_id,
-          tlpayment_id: lFinPaymentAndDetailByEmp[i].tlpayment_id,
-          tlpayment_detail_paid: lFinPaymentAndDetailByEmp[i].paid,
-          tlpayment_detail_paid_go: lFinPaymentAndDetailByEmp[i].paid_go,
-          tlpayment_detail_diff_paid:
-              lFinPaymentAndDetailByEmp[i].tlpayment_detail_diff_paid,
-          tlpayment_detail_comment:
-              lFinPaymentAndDetailByEmp[i].tlpayment_detail_comment,
-          tldeposit_id: '',
-          tldeposit_create_by: '',
-          deposit_fullname: '',
-          tldeposit_detail_id: '',
-          tldeposit_bank_account: '',
-          tldeposit_date: '',
-          tldeposit_total: '',
-          tldeposit_total_actual: '',
-          tldeposit_total_balance: '',
-          tldeposit_comment: '',
-          tlfinancial_type_id: tlfinancial_type_id,
-          tlfinancial_type_name: tlfinancial_type_name,
-          tlfinancial_type_group: tlfinancial_type_group,
-          tlfinancial_type_number: tlfinancial_type_number,
-          tlfinancial_detail_actual:
-              lFinPaymentAndDetailByEmp[i].tlpayment_detail_actual_paid,
-          tlfinancial_detail_comment: '',
-          tlfinancial_detail_create_by: widget.lEmp.first.employee_id,
-          tlfinancial_detail_create_date: '',
-          tlfinancial_detail_create_time: '',
-          tlfinancial_detail_modify_by: '',
-          tlfinancial_detail_modify_date: '',
-          tlfinancial_detail_modify_time: '',
-          tlfinancial_id: financialId,
-          tlfinancial_menu_id: finLeftMenuId);
-      print('leftMenuIDByuser :${finLeftMenuRecBy} ${finLeftMenuId}');
-      lFinDetail.add(newFPay);
-      dTotalFinDetailActual += double.parse(
-          lFinPaymentAndDetailByEmp[i].tlpayment_detail_actual_paid);
+      final checkFinDetail = lFinDetail
+          .where((cFD) =>
+              cFD.tlpayment_detail_id ==
+              lFinPaymentAndDetailByEmp[i].tlpayment_detail_id)
+          .toList();
+
+      if (checkFinDetail.isEmpty) {
+        FinancialDetailModel newFPay = FinancialDetailModel(
+            tlfinancial_detail_id: tlfinancial_detail_id,
+            tlpayment_detail_site_id:
+                lFinPaymentAndDetailByEmp[i].tlpayment_detail_site_id,
+            tlpayment_rec_by: lFinPaymentAndDetailByEmp[i].tlpayment_rec_by,
+            tlpayment_rec_date: lFinPaymentAndDetailByEmp[i].tlpayment_rec_date,
+            tlpayment_type_id: lFinPaymentAndDetailByEmp[i].tlpayment_type_id,
+            tlpayment_type: lFinPaymentAndDetailByEmp[i].tlpayment_type,
+            tlpayment_type_detail:
+                lFinPaymentAndDetailByEmp[i].tlpayment_type_detail,
+            tlpayment_detail_actual_paid:
+                lFinPaymentAndDetailByEmp[i].tlpayment_detail_actual_paid,
+            tlpayment_detail_id:
+                lFinPaymentAndDetailByEmp[i].tlpayment_detail_id,
+            tlpayment_id: lFinPaymentAndDetailByEmp[i].tlpayment_id,
+            tlpayment_detail_paid: lFinPaymentAndDetailByEmp[i].paid,
+            tlpayment_detail_paid_go: lFinPaymentAndDetailByEmp[i].paid_go,
+            tlpayment_detail_diff_paid:
+                lFinPaymentAndDetailByEmp[i].tlpayment_detail_diff_paid,
+            tlpayment_detail_comment:
+                lFinPaymentAndDetailByEmp[i].tlpayment_detail_comment,
+            tldeposit_id: '',
+            tldeposit_create_by: '',
+            deposit_fullname: '',
+            tldeposit_detail_id: '',
+            tldeposit_bank_account: '',
+            tldeposit_date: '',
+            tldeposit_total: '',
+            tldeposit_total_actual: '',
+            tldeposit_total_balance: '',
+            tldeposit_comment: '',
+            tlfinancial_type_id: tlfinancial_type_id,
+            tlfinancial_type_name: tlfinancial_type_name,
+            tlfinancial_type_group: tlfinancial_type_group,
+            tlfinancial_type_number: tlfinancial_type_number,
+            tlfinancial_detail_actual:
+                lFinPaymentAndDetailByEmp[i].tlpayment_detail_actual_paid,
+            tlfinancial_detail_comment: '',
+            tlfinancial_detail_create_by: widget.lEmp.first.employee_id,
+            tlfinancial_detail_create_date: '',
+            tlfinancial_detail_create_time: '',
+            tlfinancial_detail_modify_by: '',
+            tlfinancial_detail_modify_date: '',
+            tlfinancial_detail_modify_time: '',
+            tlfinancial_id: financialId,
+            tlfinancial_menu_id: finLeftMenuId);
+        print('leftMenuIDByuser :${finLeftMenuRecBy} ${finLeftMenuId}');
+        lFinDetail.add(newFPay);
+        dTotalFinDetailActual += double.parse(
+            lFinPaymentAndDetailByEmp[i].tlpayment_detail_actual_paid);
+      }
     }
   }
 
@@ -2387,7 +2504,8 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
     );
   }
 
-  Future loadPaymentMasterCheck(String siteDDValue, String dateRec) async {
+  Future loadPaymentMasterBuildFinMenu(
+      String siteDDValue, String dateRec) async {
     lPaymentMaster = [];
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
@@ -2573,6 +2691,71 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
             .where((ee) => ee.rec_by == 'ALL')
             .first
             .tlfinancial_menu_diffimedpaid = dSumDiffAll.toStringAsFixed(2);
+      }
+    });
+  }
+
+  Future loadPaymentMasterBuildImage(String siteDDValue, String dateRec) async {
+    lPaymentMaster = [];
+    FormData formData = FormData.fromMap({
+      "token": TlConstant.token,
+      "site_id": siteDDValue,
+      "date_receipt": dateRec
+    });
+    String api = '${TlConstant.syncApi}tlPayment.php?id=checkPaymentConfirm';
+    await Dio().post(api, data: formData).then((value) async {
+      if (value.data == null) {
+        print('NoData');
+      } else {
+        PaymentEmpFullNameModel newPaymentALL = PaymentEmpFullNameModel(
+            tlpayment_id: '',
+            tlpayment_imed_total: '',
+            tlpayment_actual_total: '',
+            tlpayment_diff_abs: '',
+            tlpayment_rec_date: '',
+            tlpayment_rec_time_from: '',
+            tlpayment_rec_time_to: '',
+            tlpayment_rec_site: '',
+            tlpayment_rec_by: 'ALL',
+            tlpayment_create_date: '',
+            tlpayment_create_time: '',
+            tlpayment_modify_date: '',
+            tlpayment_modify_time: '',
+            tlpayment_status: '',
+            tlpayment_merge_id: '',
+            tlpayment_comment: '',
+            tlpayment_imed_total_income: '',
+            tlpayment_print_number: '',
+            emp_fullname: 'ALL',
+            tlpayment_approval_id: '');
+        lPaymentMaster.add(newPaymentALL);
+        for (var payment in value.data) {
+          ChoicePaymentModel ee = ChoicePaymentModel.fromMap(payment);
+
+          PaymentEmpFullNameModel newPaymentFullName = PaymentEmpFullNameModel(
+              tlpayment_id: ee.tlpayment_id,
+              tlpayment_imed_total: ee.tlpayment_imed_total,
+              tlpayment_actual_total: ee.tlpayment_actual_total,
+              tlpayment_diff_abs: ee.tlpayment_diff_abs,
+              tlpayment_rec_date: ee.tlpayment_rec_date,
+              tlpayment_rec_time_from: ee.tlpayment_rec_time_from,
+              tlpayment_rec_time_to: ee.tlpayment_rec_time_to,
+              tlpayment_rec_site: ee.tlpayment_rec_site,
+              tlpayment_rec_by: ee.tlpayment_rec_by,
+              tlpayment_create_date: ee.tlpayment_create_date,
+              tlpayment_create_time: ee.tlpayment_create_time,
+              tlpayment_modify_date: ee.tlpayment_modify_date,
+              tlpayment_modify_time: ee.tlpayment_modify_time,
+              tlpayment_status: ee.tlpayment_status,
+              tlpayment_merge_id: ee.tlpayment_merge_id,
+              tlpayment_comment: ee.tlpayment_comment,
+              tlpayment_imed_total_income: ee.tlpayment_imed_total_income,
+              tlpayment_print_number: ee.tlpayment_print_number,
+              emp_fullname: await employeeFullName(ee.tlpayment_rec_by),
+              tlpayment_approval_id: ee.tlpayment_approval_id);
+
+          lPaymentMaster.add(newPaymentFullName);
+        }
       }
     });
   }
@@ -2889,7 +3072,25 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
     }
   }
 
-  Future loadFinancialMenu(String siteDDValue, String dateRec) async {
+  loadFin(String recSite, String recDate) async {
+    FormData formData = FormData.fromMap(
+        {"token": TlConstant.token, "1": recSite, "2": recDate});
+    String api = '${TlConstant.syncApi}tlFinancial.php?id=load';
+
+    await Dio().post(api, data: formData).then((value) {
+      if (value.data == null) {
+        print('Financial Null !');
+      } else {
+        for (var fin in value.data) {
+          FinancialModel newF = FinancialModel.fromMap(fin);
+          lFin.add(newF);
+        }
+      }
+      setState(() {});
+    });
+  }
+
+  Future loadFinMenu(String siteDDValue, String dateRec) async {
     FormData formData = FormData.fromMap({
       "token": TlConstant.token,
       "rec_site": siteDDValue,
@@ -2980,6 +3181,7 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
 
   loadFinDetailByFinId(String financialId) async {
     lFinDetail = [];
+    // dTotalFinDetailActual = 0.0;
     FormData formData =
         FormData.fromMap({"token": TlConstant.token, "1": financialId});
     String api = '${TlConstant.syncApi}tlFinancialDetail.php?id=loadFin';
@@ -2990,6 +3192,28 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
         for (var fd in value.data) {
           FinancialDetailModel newFD = FinancialDetailModel.fromMap(fd);
           lFinDetail.add(newFD);
+          dTotalFinDetailActual +=
+              double.parse(newFD.tlfinancial_detail_actual);
+        }
+      }
+    });
+  }
+
+  loadFinDetailByFinMenu() async {
+    // lFinDetail = [];
+    // dTotalFinDetailActual = 0.0;
+    FormData formData =
+        FormData.fromMap({"token": TlConstant.token, "1": finLeftMenuId});
+    String api = '${TlConstant.syncApi}tlFinancialDetail.php?id=loadFinMenu';
+    await Dio().post(api, data: formData).then((value) {
+      if (value.data == null) {
+        print('FinDetail Null !');
+      } else {
+        for (var fd in value.data) {
+          FinancialDetailModel newFD = FinancialDetailModel.fromMap(fd);
+          lFinDetail.add(newFD);
+          dTotalFinDetailActual +=
+              double.parse(newFD.tlfinancial_detail_actual);
         }
       }
     });
@@ -3069,6 +3293,50 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
 
     await Dio().post(api, data: formData);
   }
+
+  Future createFinancial(FinancialModel fin) async {
+    FormData formData = FormData.fromMap({
+      "token": TlConstant.token,
+      '1': fin.tlfinancial_id,
+      '2': fin.tlfinancial_rec_date,
+      '3': fin.tlfinancial_rec_site,
+      '4': fin.tlfinancial_create_by,
+      '5': fin.tlfinancial_create_date,
+      '6': fin.tlfinancial_create_time,
+      '7': fin.tlfin_imed_paid,
+      '8': fin.tlfin_payment_paid,
+      '9': fin.tlfin_payment_paid_go,
+      '10': fin.tlfin_payment_paid_actual,
+      '11': fin.tlfinancial_actual,
+      '12': fin.tlfinancial_diff,
+      '13': fin.tlfinancial_status,
+      '14': fin.tlfinancial_comment,
+      '15': fin.tlfinancial_modify_by,
+      '16': fin.tlfinancial_modify_date,
+      '17': fin.tlfinancial_modify_time
+    });
+    String api = '${TlConstant.syncApi}tlFinancial.php?id=create';
+
+    await Dio().post(api, data: formData);
+  }
+
+  Future createFinancialGroup(FinancialGroupModel fg) async {
+    FormData formData = FormData.fromMap({
+      "token": TlConstant.token,
+      '1': fg.tlfinancial_group_id,
+      '2': fg.tlfinancial_type_id,
+      '3': fg.tlfinancial_type_name,
+      '4': fg.tlfinancial_type_group,
+      '5': fg.tlfinancial_type_number,
+      '6': fg.tlfinancial_group_sum,
+      '7': fg.tlfinancial_id,
+      '8': fg.tldeposit_id
+    });
+    String api = '${TlConstant.syncApi}tlFinancialGroup.php?id=create';
+
+    await Dio().post(api, data: formData);
+  }
+
   //!-------------Update
 
   Future updateFinMenuStatus(String finMenuId, String status) async {
@@ -3096,6 +3364,19 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
     });
     String api = '${TlConstant.syncApi}tlFinancialDetail.php?id=uId';
 
+    await Dio().post(api, data: formData);
+  }
+
+  updateFinMenuDetail(FinancialMenuModel mFinMenu) async {
+    FormData formData = FormData.fromMap({
+      "token": TlConstant.token,
+      '1': mFinMenu.tlfinancial_menu_id,
+      '2': mFinMenu.tlfinancial_menu_diffimedpaid,
+      '3': mFinMenu.tlpayment_sum_paid,
+      '4': mFinMenu.tlpayment_sum_paid_go,
+      '5': mFinMenu.tlpayment_sum_actual
+    });
+    String api = '${TlConstant.syncApi}tlFinancialMenu.php?id=uDetail';
     await Dio().post(api, data: formData);
   }
 }
