@@ -2067,6 +2067,9 @@ class _CheckFinancialScreenState extends State<CheckFinancialScreen> {
       String isCheckdepositId = '';
       double dGroupTotal = 0.0;
       if (group == 'DepositBank' && finLeftMenuRecBy == 'ALL') {
+        value.sort((a, b) => a.tldeposit_id.compareTo(b.tldeposit_id));
+
+            
         for (var ee in value) {
           if (ee.tldeposit_id.isNotEmpty) {
             if (tldepositId == '') {
