@@ -2,7 +2,7 @@ import 'dart:math';
 
 class TlConstant {
   //workstepupdate
-  //static const String syncApi = 'http://localhost:80/apiTLSmartCashier/';
+  //static const String syncApi = 'https://app-test.thonglorpet.com/apiTLSmartCashier/';
   static const String syncApi =
       'https://e-cashier.thonglorpet.com/apiTLSmartCashier/';
 
