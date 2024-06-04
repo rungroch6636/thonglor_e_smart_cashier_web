@@ -52,20 +52,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-icons_launcher:
-  image_path: 'images/logo_e-cashier.png'
-  platforms:
-    android:
-      enable: true
-    ios:
-      enable: true
-    web:
-      enable: true
-      image_path: 'images/logo_e-cashier.png'
-      favicon_path: 'images/logo_e-cashier.png'
-    windows:
-      enable: true
-      image_path: 'images/logo_e-cashier.png'
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

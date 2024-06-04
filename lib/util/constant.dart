@@ -6,7 +6,7 @@ class TlConstant {
   static const String syncApi =
       'https://e-cashier.thonglorpet.com/apiTLSmartCashier/';
 
-  static final String version = 'TL670423V023';
+  static final String version = 'TL670605V023'; // OldVerSion'TL670423V023';
   static final String token = 'epyTtnemyaPegnahCipa';
 
   static String runID() => DateTime.now().millisecondsSinceEpoch.toString();

@@ -2177,65 +2177,113 @@ class _PaymentTypeScreenState extends State<PaymentTypeScreen> {
                   e.tlpayment_type == lReceiptImed[i].paid_method_th &&
                   e.tlpayment_type_detail == lReceiptImed[i].paid_method_sub_th)
               .toList();
-          //! opd_paid
-          upPD.first.opd_paid = lReceiptImed[i].opd_paid;
-          //! ipd_paid
-          upPD.first.ipd_paid = lReceiptImed[i].ipd_paid;
-          //! paid
-          upPD.first.paid = lReceiptImed[i].paid;
-          //! paid_go
-          upPD.first.paid_go = lReceiptImed[i].paid_go;
-          //! diff
-          double dPaidGo = double.parse(upPD.first.paid_go);
+          if (upPD.isNotEmpty) {
+            //! opd_paid
+            upPD.first.opd_paid = lReceiptImed[i].opd_paid;
+            //! ipd_paid
+            upPD.first.ipd_paid = lReceiptImed[i].ipd_paid;
+            //! paid
+            upPD.first.paid = lReceiptImed[i].paid;
+            //! paid_go
+            upPD.first.paid_go = lReceiptImed[i].paid_go;
+            //! diff
+            double dPaidGo = double.parse(upPD.first.paid_go);
 
-          double dActual = dPaidGo;
-          double dDiff = dActual - dPaidGo;
-          upPD.first.tlpayment_detail_diff_paid = dDiff.toStringAsFixed(2);
+            double dActual = dPaidGo;
+            double dDiff = dActual - dPaidGo;
+            upPD.first.tlpayment_detail_diff_paid = dDiff.toStringAsFixed(2);
+            lPaymentDetail
+                    .where(
+                        (eee) =>
+                            eee.tlpayment_detail_id ==
+                            upPD.first.tlpayment_detail_id)
+                    .first
+                    .opd_paid =
+                double.parse(upPD.first.opd_paid).toStringAsFixed(2);
 
-          lPaymentDetail
-              .where((eee) =>
-                  eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
-              .first
-              .opd_paid = double.parse(upPD.first.opd_paid).toStringAsFixed(2);
+            lPaymentDetail
+                    .where(
+                        (eee) =>
+                            eee.tlpayment_detail_id ==
+                            upPD.first.tlpayment_detail_id)
+                    .first
+                    .ipd_paid =
+                double.parse(upPD.first.ipd_paid).toStringAsFixed(2);
 
-          lPaymentDetail
-              .where((eee) =>
-                  eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
-              .first
-              .ipd_paid = double.parse(upPD.first.ipd_paid).toStringAsFixed(2);
+            lPaymentDetail
+                .where((eee) =>
+                    eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
+                .first
+                .paid = double.parse(upPD.first.paid).toStringAsFixed(2);
 
-          lPaymentDetail
-              .where((eee) =>
-                  eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
-              .first
-              .paid = double.parse(upPD.first.paid).toStringAsFixed(2);
+            lPaymentDetail
+                .where((eee) =>
+                    eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
+                .first
+                .paid_go = double.parse(upPD.first.paid_go).toStringAsFixed(2);
 
-          lPaymentDetail
-              .where((eee) =>
-                  eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
-              .first
-              .paid_go = double.parse(upPD.first.paid_go).toStringAsFixed(2);
+            lPaymentDetail
+                    .where(
+                        (eee) =>
+                            eee.tlpayment_detail_id ==
+                            upPD.first.tlpayment_detail_id)
+                    .first
+                    .tlpayment_detail_actual_paid =
+                double.parse(upPD.first.paid_go).toStringAsFixed(2);
 
-          lPaymentDetail
-                  .where((eee) =>
-                      eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
-                  .first
-                  .tlpayment_detail_actual_paid =
-              double.parse(upPD.first.paid_go).toStringAsFixed(2);
+            lPaymentDetail
+                .where((eee) =>
+                    eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
+                .first
+                .tlpayment_detail_diff_paid = '0.0';
+            // double.parse(upPD.first.tlpayment_detail_diff_paid)
+            //     .toStringAsFixed(2);
 
-          lPaymentDetail
-              .where((eee) =>
-                  eee.tlpayment_detail_id == upPD.first.tlpayment_detail_id)
-              .first
-              .tlpayment_detail_diff_paid = '0.0';
-          // double.parse(upPD.first.tlpayment_detail_diff_paid)
-          //     .toStringAsFixed(2);
+            dTotalPaid += double.parse(upPD.first.paid_go);
+            dTotalActual += dActual;
+            dTotalBalance =
+                0.0; //double.parse(upPD.first.tlpayment_detail_diff_paid);
+            dTotalIncome += double.parse(upPD.first.paid);
+          } else {
+            var formatId = i.toString().padLeft(4, '0');
+            PaymentDetailModel newPD = PaymentDetailModel(
+                tlpayment_detail_id:
+                    '${TlConstant.runID()}${TlConstant.random()}$formatId',
+                tlpayment_id: paymentId,
+                tlpayment_type_id: lReceiptImed[i].paid_method_func.toString(),
+                tlpayment_type: lReceiptImed[i].paid_method_th.toString(),
+                tlpayment_type_detail:
+                    lReceiptImed[i].paid_method_sub_th.toString(),
+                tlpayment_type_detail_id: lReceiptImed[i].c_num.toString(),
+                opd_paid: double.parse(lReceiptImed[i].opd_paid.toString())
+                    .toStringAsFixed(2),
+                ipd_paid: double.parse(lReceiptImed[i].ipd_paid.toString())
+                    .toStringAsFixed(2),
+                paid: double.parse(lReceiptImed[i].paid.toString())
+                    .toStringAsFixed(2),
+                paid_go: double.parse(lReceiptImed[i].paid_go.toString())
+                    .toStringAsFixed(2),
+                prpdsp: lReceiptImed[i].grpdsp.toString(),
+                tlpayment_detail_site_id: siteToAddPaymentType,
+                tlpayment_detail_actual_paid:
+                    double.parse(lReceiptImed[i].paid_go.toString())
+                        .toStringAsFixed(2),
+                tlpayment_detail_diff_paid: '0',
+                tlpayment_detail_comment: '');
 
-          dTotalPaid += double.parse(upPD.first.paid_go);
-          dTotalActual += dActual;
-          dTotalBalance =
-              0.0; //double.parse(upPD.first.tlpayment_detail_diff_paid);
-          dTotalIncome += double.parse(upPD.first.paid);
+            lPaymentDetail.add(newPD);
+
+            double dPaidGo = double.parse(newPD.paid_go);
+
+            double dActual = dPaidGo;
+            //??double dDiff = dActual - dPaidGo;
+            //??upPD.first.tlpayment_detail_diff_paid = dDiff.toStringAsFixed(2);
+            dTotalPaid += double.parse(newPD.paid_go);
+            dTotalActual += dActual;
+            dTotalBalance =
+                0.0; //double.parse(upPD.first.tlpayment_detail_diff_paid);
+            dTotalIncome += double.parse(newPD.paid);
+          }
         }
         groupName = ''; //groupPaymentDeposit(lPaymentDetail);
       }
